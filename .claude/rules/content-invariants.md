@@ -5,9 +5,11 @@ paths:
   - "Quarto/**/*.scss"
   - "Preambles/header.tex"
   - "scripts/R/**/*.R"
+  - "scripts/stata/**/*.do"
+  - "scripts/python/**/*.py"
 ---
 
-# Content Invariants (INV-1 through INV-12)
+# Content Invariants (INV-1 through INV-15)
 
 Numbered non-negotiable rules for content produced in this repository. Critic agents, reviewers, and audit agents should cite invariants by number (e.g., "violates INV-3") when flagging issues. Adapted from clo-author's enforcement pattern.
 
@@ -31,3 +33,9 @@ Numbered non-negotiable rules for content produced in this repository. Critic ag
 - **INV-10: Relative paths only.** No absolute paths (`/Users/...`, `C:\...`, `~` expansion). All paths relative to the repository root. Use `file.path()` for cross-platform compatibility.
 - **INV-11: Transparent backgrounds for Beamer figures.** All `ggsave()` calls producing figures for Beamer slides must include `bg = "transparent"`.
 - **INV-12: Project theme on all plots.** Every ggplot figure must use the project's custom theme. No default ggplot2 gray backgrounds should appear in any committed figure.
+
+## Stata / Python script invariants
+
+- **INV-13: Seed pinned once at top.** Every `.do` file that uses randomness must set `set seed N` and `set sortseed N` exactly once at the top, before any stochastic code — never inside loops or programs. Every `.py` file must create `rng = np.random.default_rng(<seed>)` once at the top and use that generator throughout.
+- **INV-14: Relative paths only (Stata/Python).** As INV-10, generalized: no absolute paths or `~` expansion; all paths relative to the repository root. Stata scripts use display-free path globals or plain relative paths; Python scripts use `pathlib.Path` relative to the project root.
+- **INV-15: Vector + transparent exports.** Paper figures export as vector PDF (matplotlib `savefig(format="pdf")`, Stata `graph export ... as(pdf)`); slide figures as transparent PNG at 300 DPI (≥2000px wide). Every figure uses the project palette; no default gray backgrounds in any committed figure.

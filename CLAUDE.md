@@ -1,12 +1,13 @@
 # CLAUDE.MD -- Academic Project Development with Claude Code
 
-<!-- HOW TO USE: Replace [BRACKETED PLACEHOLDERS] with your project info.
-     Customize Beamer environments and CSS classes for your theme.
+<!-- HOW TO USE: This file has been customized for the Workflow Practice Sandbox
+     (2026-10-28). Placeholders are filled; Beamer environments and CSS classes
+     reflect Preambles/header.tex and Quarto/theme-template.scss as shipped.
      Keep this file under ~200 lines (official guidance) — Claude loads it every session.
      See the guide at docs/workflow-guide.html for full documentation. -->
 
-**Project:** [YOUR PROJECT NAME]
-**Institution:** [YOUR INSTITUTION]
+**Project:** Workflow Practice Sandbox
+**Institution:** —(练习沙盒,无机构)
 **Branch:** main
 
 ---
@@ -28,7 +29,7 @@ and the usual outcome is that all four get thrown away.
 ## Core Principles
 
 - **Plan first** -- enter plan mode before non-trivial tasks; save plans to `quality_reports/plans/`
-- **Verify after** -- when a task changes a `.tex`, `.qmd`, or `.R` file, compile or render it and confirm the output before reporting done
+- **Verify after** -- when a task changes a `.tex`, `.qmd`, `.do`, or `.py` file, compile, render, or run it and confirm the output before reporting done
 - **Single source of truth** -- Beamer `.tex` is authoritative; Quarto `.qmd` derives from it
 - **Quality gates** -- nothing ships below 80/100
 - **[LEARN] tags** -- when corrected, save `[LEARN:category] wrong → right` to [MEMORY.md](MEMORY.md)
@@ -59,10 +60,29 @@ Nothing clears work until it has a row in [`quality_reports/qualification/LEDGER
 
 ---
 
+## Project Constitution
+
+**Immutable articles** — deviate only by explicit amendment (see below).
+
+- **Art. I 权威源 (Primary artifact).** 脚本是唯一权威:Stata `.do` / Python `.py` 生成数字与图表,LaTeX `.tex` 引用它们的产物。表格经 `esttab → output/*.tex → \input{}`,图经脚本导出;**绝不手改脚本生成物**。改数字先改脚本再重跑。
+- **Art. II Plan-first 阈值.** 触及 >3 个文件,或改变交付物实质(讲稿、论文、分析管线、复现包)→ 先进计划模式并把计划写入 `quality_reports/plans/`;小而明确的修改直接做。
+- **Art. III 质量门.** 提交前 ≥80/100(经 `/commit`;`./scripts/install-hooks.sh` 后由 pre-commit 钩子强制);`explorations/` 走 60 分快轨;低于门槛不发布,除非显式 override 并记录理由。
+- **Art. IV 验证标准.** 改 `.tex`/`.qmd`/`.do`/`.py` 必须编译/渲染/运行验证通过才可报告"完成";数字与论文对得上(`/audit-reproducibility` 容差:整数精确,点估计 <0.01,标准误 <0.05)。
+- **Art. V 发表级图表标准.** 只用项目调色板(Emory 蓝 #012169 / 金 #B9975B + 语义色,`header.tex` ↔ `theme-template.scss` 锁定);论文图表矢量 PDF,幻灯片 300 DPI PNG ≥2000px、透明底;禁止默认灰底;标签位置按 [`tikz-measurement.md`](.claude/rules/tikz-measurement.md) 计算,新图走 `/new-diagram` + `/extract-tikz`。
+- **Art. VI 决策记忆.** 设计决策即时写入会话日志;用户纠正沉淀为 `[LEARN]` 条目(通用)或自动记忆(本机/本项目)。同一错误不重复第三次——第二次即停机重估方案。
+
+**偏好 (preferences,可随时调整).** 初期多检查:设计分叉、歧义、不可逆操作前用 `AskUserQuestion` 先确认;报告用简洁要点,细节按需展开;会话日志始终写;中文交流、中文标点;聊天中的数学用平文本不用 LaTeX。
+
+**修订流程.** 用户提出偏离某条时,先问:"是**修订该条**(永久)还是**本次任务一次性 override**?" 前者更新本节并记入会话日志(`[CONSTITUTIONAL AMENDMENT]`),后者只在本任务生效。
+
+> 沙盒阶段本宪法内联于 CLAUDE.md(每次会话常驻上下文)。完整模板见 [`templates/constitutional-governance.md`](templates/constitutional-governance.md);项目定型后可实例化为 `.claude/rules/` 独立规则文件——届时须走模板发布流程(装 Quarto → 同步 surface-sync 计数 → 重渲染 guide → `stamp-render.sh`)。
+
+---
+
 ## Folder Structure
 
 ```
-[YOUR-PROJECT]/
+my-project/
 ├── CLAUDE.MD                    # This file
 ├── .claude/                     # Rules, skills, agents, hooks
 ├── Bibliography_base.bib        # Centralized bibliography
@@ -98,6 +118,11 @@ python3 scripts/quality_score.py Quarto/file.qmd
 
 # Palette sync (LaTeX ↔ SCSS)
 ./scripts/check-palette-sync.sh
+
+# Stata (batch; logs land in cwd, so cd first)
+# This machine runs Stata SE 16 → pin `version 16` at the top of local .do files
+# (the version 18 in .claude/rules/stata-code-conventions.md is the generic example).
+cd scripts/stata && "/Applications/Stata/StataSE.app/Contents/MacOS/stata-se" -b do 99_run_all.do
 
 # Backtest: is the repo internally consistent and currently true?
 # (surface-sync + skill-integrity + model-versions + links + spec-conformance + staleness + repo-hygiene + derived-counts + ledger-coverage + hook-battery)
@@ -136,24 +161,29 @@ Stata (`/stata-replication`), R packages (`/r-package-check`), TikZ (`/extract-t
 
 ---
 
-<!-- CUSTOMIZE: Replace placeholder rows ([your-env], [.your-class]) with your own.
-     Delete the rows marked "(example — delete)" once you've added yours. -->
-
 ## Beamer Custom Environments
 
-| Environment | Effect | Use Case |
+Defined in [`Preambles/header.tex`](Preambles/header.tex) (loaded automatically by `/compile-latex`).
+
+| Macro / Style | Effect | Use Case |
 | --- | --- | --- |
-| `[your-env]` | [Description] | [When to use] |
-| `keybox` | Gold background box | Key points *(example — delete)* |
-| `definitionbox[Title]` | Blue-bordered titled box | Formal definitions *(example — delete)* |
+| `\transitionslide{Title}` | Full-bleed dark blue section frame | Section breaks |
+| `\key{...}` | Gold bold emphasis | Key terms |
+| `\good{...}` / `\bad{...}` | Green / red semantic text | Observed vs. bias/counterfactual |
+| `\muted{...}` | Neutral gray | Asides, caveats |
+| `dag-node`, `decision-node`, `observed-edge`, `confound-edge` | TikZ node/edge styles | Causal DAGs — start from `templates/tikz-snippets/` |
 
 ## Quarto CSS Classes
 
+Defined in [`Quarto/theme-template.scss`](Quarto/theme-template.scss).
+
 | Class | Effect | Use Case |
 | --- | --- | --- |
-| `[.your-class]` | [Description] | [When to use] |
-| `.smaller` | 85% font | Dense content *(example — delete)* |
-| `.positive` | Green bold | Good annotations *(example — delete)* |
+| `.keybox` | Gold left-border callout | Key takeaways |
+| `.methodbox` | Blue left-border callout | Method notes |
+| `.resultbox` | Gold outlined box | Headline results |
+| `.positive` / `.negative` / `.neutral` | Green / red / gray bold | Sign and status annotations |
+| `.smaller` / `.bigger` | 85% / 115% font | Dense slides |
 
 ---
 
@@ -161,5 +191,6 @@ Stata (`/stata-replication`), R packages (`/r-package-check`), TikZ (`/extract-t
 
 | Lecture | Beamer | Quarto | Key Content |
 | --- | --- | --- | --- |
-| HelloWorld *(sample — delete when ready)* | `HelloWorld.tex` | `HelloWorld.qmd` | Minimal deck to verify setup |
-| 1: [Topic] | `Lecture01_Topic.tex` | `Lecture1_Topic.qmd` | [Brief description] |
+| HelloWorld *(安装验证样例;`/compile-latex HelloWorld` 通过后按 README 删除)* | `HelloWorld.tex` | `HelloWorld.qmd` | Minimal deck to verify setup |
+
+沙盒尚无正式讲稿;首个真实交付物出现时在此加行。
