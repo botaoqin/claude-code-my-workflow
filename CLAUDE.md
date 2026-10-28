@@ -192,5 +192,4 @@ Defined in [`Quarto/theme-template.scss`](Quarto/theme-template.scss).
 | Lecture | Beamer | Quarto | Key Content |
 | --- | --- | --- | --- |
 | HelloWorld *(安装验证样例;`/compile-latex HelloWorld` 通过后按 README 删除)* | `HelloWorld.tex` | `HelloWorld.qmd` | Minimal deck to verify setup |
-
-沙盒尚无正式讲稿;首个真实交付物出现时在此加行。
+| MiniReplication *(首个全链路练习:合成面板 → Stata → esttab → 图 → 讲稿)* | `MiniReplication.tex` | — | 干旱→水电→工业产出合成面板(N=620);reghdfe 双向 FE + 省聚类;2 张调色板图 |

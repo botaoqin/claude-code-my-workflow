@@ -94,6 +94,8 @@ output/**/*.feather
 output/**/*.dta
 output/**/*.pkl
 output/**/*.pickle
+output/intermediates/
+output/**/*.csv
 # pre-v2.6 location (outputs used to live beside the code)
 scripts/*/_outputs/
 

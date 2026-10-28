@@ -1,0 +1,38 @@
+-------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  /Users/botaoqin/Documents/claude/my-project/output/sessionInfo_sta
+> ta.txt
+  log type:  text
+ opened on:  28 Oct 2026, 09:40:37
+
+. display "$S_DATE $S_TIME"
+28 Oct 2026 09:40:37
+
+. capture noisily which estout
+/Users/botaoqin/Library/Application Support/Stata/ado/plus/e/estout.ado
+*! version 3.17  02jun2014  Ben Jann
+
+. capture noisily which reghdfe
+/Users/botaoqin/Library/Application Support/Stata/ado/plus/r/reghdfe.ado
+*! version 6.12.3 08aug2023
+
+. about
+
+Stata/SE 16.0 for Unix (64-bit Intel)
+Revision 02 Jul 2019
+Copyright 1985-2019 StataCorp LLC
+
+Total usable memory:   16.00 GB
+
+Single-user Stata perpetual license:
+       Serial number:  12345678910
+         Licensed to:  mark
+                       anonymous
+
+. log close
+      name:  <unnamed>
+       log:  /Users/botaoqin/Documents/claude/my-project/output/sessionInfo_sta
+> ta.txt
+  log type:  text
+ closed on:  28 Oct 2026, 09:40:37
+-------------------------------------------------------------------------------

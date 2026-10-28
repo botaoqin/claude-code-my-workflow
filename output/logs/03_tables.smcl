@@ -1,0 +1,46 @@
+{smcl}
+{com}{sf}{ul off}{txt}{.-}
+      name:  {res}<unnamed>
+       {txt}log:  {res}/Users/botaoqin/Documents/claude/my-project/output/logs/03_tables.smcl
+  {txt}log type:  {res}smcl
+ {txt}opened on:  {res}28 Oct 2026, 09:40:36
+{txt}
+{com}. 
+. * `estimates use <file>` loads into the ACTIVE estimates; store each one so
+. * esttab can address them by name.
+. estimates use "output/intermediates/estimates/m1.ster"
+{res}{txt}
+{com}. estimates store m1
+{txt}
+{com}. estimates use "output/intermediates/estimates/m2.ster"
+{res}{txt}
+{com}. estimates store m2
+{txt}
+{com}. estimates use "output/intermediates/estimates/m3.ster"
+{res}{txt}
+{com}. estimates store m3
+{txt}
+{com}. estimates use "output/intermediates/estimates/m4.ster"
+{res}{txt}
+{com}. estimates store m4
+{txt}
+{com}. 
+. esttab m1 m2 m3 m4 using "output/tables/mini_replication.tex", replace ///
+>     booktabs label b(3) se(2) star(* 0.10 ** 0.05 *** 0.01) ///
+>     mtitles("Baseline" "+ Precip." "Drought only" "Direct effect") ///
+>     stats(N r2_a, fmt(%9.0fc %9.3f) labels("Observations" "Adj. R-squared")) ///
+>     drop(_cons) nonotes ///
+>     addnotes("SEs in parentheses, clustered at province level (31 clusters)." ///
+>              "* p<0.10, ** p<0.05, *** p<0.01.")
+{res}{txt}(note: file output/tables/mini_replication.tex not found)
+(output written to {browse  `"output/tables/mini_replication.tex"'})
+
+{com}. 
+. log close
+      {txt}name:  {res}<unnamed>
+       {txt}log:  {res}/Users/botaoqin/Documents/claude/my-project/output/logs/03_tables.smcl
+  {txt}log type:  {res}smcl
+ {txt}closed on:  {res}28 Oct 2026, 09:40:36
+{txt}{.-}
+{smcl}
+{txt}{sf}{ul off}

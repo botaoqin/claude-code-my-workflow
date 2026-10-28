@@ -1,0 +1,268 @@
+{smcl}
+{com}{sf}{ul off}{txt}{.-}
+      name:  {res}<unnamed>
+       {txt}log:  {res}/Users/botaoqin/Documents/claude/my-project/output/logs/02_regressions.smcl
+  {txt}log type:  {res}smcl
+ {txt}opened on:  {res}28 Oct 2026, 09:40:36
+{txt}
+{com}. 
+. use "output/intermediates/panel.dta", clear
+{txt}
+{com}. xtset province year
+{res}{txt}{col 8}panel variable:  {res}province (strongly balanced)
+{txt}{col 9}time variable:  {res}{col 25}year, 2000 to 2019
+{txt}{col 17}delta:  {res}1 unit
+{txt}
+{com}. 
+. eststo clear
+{txt}
+{com}. 
+. * (1) Baseline: hydro share only, province and year FE
+. reghdfe ln_y h, absorb(province year) cluster(province)
+{res}{txt}({browse "http://scorreia.com/research/hdfe.pdf":MWFE estimator} converged in 2 iterations)
+{res}
+{txt}HDFE Linear regression{col 51}Number of obs{col 67}= {res}       620
+{txt}Absorbing 2 HDFE groups{col 51}F({res}   1{txt},{res}     30{txt}){col 67}= {res}    331.89
+{txt}Statistics robust to heteroskedasticity{col 51}Prob > F{col 67}= {res}    0.0000
+{txt}{col 51}R-squared{col 67}= {res}    0.9287
+{txt}{col 51}Adj R-squared{col 67}= {res}    0.9225
+{txt}{col 51}Within R-sq.{col 67}= {res}    0.3864
+{txt}{col 1}Number of clusters ({res}province{txt}) {col 30}= {res}        31{txt}{col 51}Root MSE{col 67}= {res}    0.1185
+
+{txt}{ralign 78:(Std. Err. adjusted for {res:31} clusters in province)}
+{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 14}{c |}{col 26}    Robust
+{col 1}        ln_y{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 11}h {c |}{col 14}{res}{space 2} 1.960953{col 26}{space 2} .1076392{col 37}{space 1}   18.22{col 46}{space 3}0.000{col 54}{space 4} 1.741124{col 67}{space 3} 2.180782
+{txt}{space 7}_cons {c |}{col 14}{res}{space 2} 10.94598{col 26}{space 2} .0340887{col 37}{space 1}  321.10{col 46}{space 3}0.000{col 54}{space 4} 10.87637{col 67}{space 3}  11.0156
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}
+{txt}Absorbed degrees of freedom:
+{res}{col 1}{text}{hline 13}{c TT}{hline 12}{hline 12}{hline 14}{hline 1}{c TRC}
+{col 1}{text} Absorbed FE{col 14}{c |} Categories{col 27} - Redundant{col 39}  = Num. Coefs{col 54}{c |}
+{res}{col 1}{text}{hline 13}{c +}{hline 12}{hline 12}{hline 14}{hline 1}{c RT}
+{col 1}{text}    province{col 14}{c |}{space 1}       31{col 27}{space 1}       31{col 39}{result}{space 1}        0{col 53}{text}*{col 54}{c |}
+{res}{col 1}{text}        year{col 14}{c |}{space 1}       20{col 27}{space 1}        1{col 39}{result}{space 1}       19{col 53}{text} {col 54}{c |}
+{res}{col 1}{text}{hline 13}{c BT}{hline 12}{hline 12}{hline 14}{hline 1}{c BRC}
+* = FE nested within cluster; treated as redundant for DoF computation
+{res}{txt}
+{com}. local b1 = _b[h]
+{txt}
+{com}. local s1 = _se[h]
+{txt}
+{com}. eststo m1
+{txt}
+{com}. 
+. * (2) Add the precipitation anomaly control
+. reghdfe ln_y h p, absorb(province year) cluster(province)
+{res}{txt}({browse "http://scorreia.com/research/hdfe.pdf":MWFE estimator} converged in 2 iterations)
+{res}
+{txt}HDFE Linear regression{col 51}Number of obs{col 67}= {res}       620
+{txt}Absorbing 2 HDFE groups{col 51}F({res}   2{txt},{res}     30{txt}){col 67}= {res}    173.32
+{txt}Statistics robust to heteroskedasticity{col 51}Prob > F{col 67}= {res}    0.0000
+{txt}{col 51}R-squared{col 67}= {res}    0.9287
+{txt}{col 51}Adj R-squared{col 67}= {res}    0.9223
+{txt}{col 51}Within R-sq.{col 67}= {res}    0.3864
+{txt}{col 1}Number of clusters ({res}province{txt}) {col 30}= {res}        31{txt}{col 51}Root MSE{col 67}= {res}    0.1186
+
+{txt}{ralign 78:(Std. Err. adjusted for {res:31} clusters in province)}
+{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 14}{c |}{col 26}    Robust
+{col 1}        ln_y{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 11}h {c |}{col 14}{res}{space 2} 1.959852{col 26}{space 2} .1070734{col 37}{space 1}   18.30{col 46}{space 3}0.000{col 54}{space 4} 1.741179{col 67}{space 3} 2.178525
+{txt}{space 11}p {c |}{col 14}{res}{space 2} .0001491{col 26}{space 2} .0057471{col 37}{space 1}    0.03{col 46}{space 3}0.979{col 54}{space 4} -.011588{col 67}{space 3} .0118863
+{txt}{space 7}_cons {c |}{col 14}{res}{space 2} 10.94633{col 26}{space 2} .0339095{col 37}{space 1}  322.81{col 46}{space 3}0.000{col 54}{space 4} 10.87708{col 67}{space 3} 11.01559
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}
+{txt}Absorbed degrees of freedom:
+{res}{col 1}{text}{hline 13}{c TT}{hline 12}{hline 12}{hline 14}{hline 1}{c TRC}
+{col 1}{text} Absorbed FE{col 14}{c |} Categories{col 27} - Redundant{col 39}  = Num. Coefs{col 54}{c |}
+{res}{col 1}{text}{hline 13}{c +}{hline 12}{hline 12}{hline 14}{hline 1}{c RT}
+{col 1}{text}    province{col 14}{c |}{space 1}       31{col 27}{space 1}       31{col 39}{result}{space 1}        0{col 53}{text}*{col 54}{c |}
+{res}{col 1}{text}        year{col 14}{c |}{space 1}       20{col 27}{space 1}        1{col 39}{result}{space 1}       19{col 53}{text} {col 54}{c |}
+{res}{col 1}{text}{hline 13}{c BT}{hline 12}{hline 12}{hline 14}{hline 1}{c BRC}
+* = FE nested within cluster; treated as redundant for DoF computation
+{res}{txt}
+{com}. local b2 = _b[h]
+{txt}
+{com}. local s2 = _se[h]
+{txt}
+{com}. eststo m2
+{txt}
+{com}. 
+. * (3) Drought only: total association, not a causal effect
+. reghdfe ln_y d, absorb(province year) cluster(province)
+{res}{txt}({browse "http://scorreia.com/research/hdfe.pdf":MWFE estimator} converged in 2 iterations)
+{res}
+{txt}HDFE Linear regression{col 51}Number of obs{col 67}= {res}       620
+{txt}Absorbing 2 HDFE groups{col 51}F({res}   1{txt},{res}     30{txt}){col 67}= {res}    125.43
+{txt}Statistics robust to heteroskedasticity{col 51}Prob > F{col 67}= {res}    0.0000
+{txt}{col 51}R-squared{col 67}= {res}    0.9141
+{txt}{col 51}Adj R-squared{col 67}= {res}    0.9065
+{txt}{col 51}Within R-sq.{col 67}= {res}    0.2602
+{txt}{col 1}Number of clusters ({res}province{txt}) {col 30}= {res}        31{txt}{col 51}Root MSE{col 67}= {res}    0.1302
+
+{txt}{ralign 78:(Std. Err. adjusted for {res:31} clusters in province)}
+{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 14}{c |}{col 26}    Robust
+{col 1}        ln_y{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 11}d {c |}{col 14}{res}{space 2}-.0816037{col 26}{space 2} .0072864{col 37}{space 1}  -11.20{col 46}{space 3}0.000{col 54}{space 4}-.0964846{col 67}{space 3}-.0667228
+{txt}{space 7}_cons {c |}{col 14}{res}{space 2} 11.56701{col 26}{space 2} 7.34e-12{col 37}{space 1} 1.6e+12{col 46}{space 3}0.000{col 54}{space 4} 11.56701{col 67}{space 3} 11.56701
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}
+{txt}Absorbed degrees of freedom:
+{res}{col 1}{text}{hline 13}{c TT}{hline 12}{hline 12}{hline 14}{hline 1}{c TRC}
+{col 1}{text} Absorbed FE{col 14}{c |} Categories{col 27} - Redundant{col 39}  = Num. Coefs{col 54}{c |}
+{res}{col 1}{text}{hline 13}{c +}{hline 12}{hline 12}{hline 14}{hline 1}{c RT}
+{col 1}{text}    province{col 14}{c |}{space 1}       31{col 27}{space 1}       31{col 39}{result}{space 1}        0{col 53}{text}*{col 54}{c |}
+{res}{col 1}{text}        year{col 14}{c |}{space 1}       20{col 27}{space 1}        1{col 39}{result}{space 1}       19{col 53}{text} {col 54}{c |}
+{res}{col 1}{text}{hline 13}{c BT}{hline 12}{hline 12}{hline 14}{hline 1}{c BRC}
+* = FE nested within cluster; treated as redundant for DoF computation
+{res}{txt}
+{com}. local b3 = _b[d]
+{txt}
+{com}. local s3 = _se[d]
+{txt}
+{com}. eststo m3
+{txt}
+{com}. 
+. * (4) Direct-effect check: does drought add anything beyond hydro share?
+. reghdfe ln_y h p d, absorb(province year) cluster(province)
+{res}{txt}({browse "http://scorreia.com/research/hdfe.pdf":MWFE estimator} converged in 2 iterations)
+{res}
+{txt}HDFE Linear regression{col 51}Number of obs{col 67}= {res}       620
+{txt}Absorbing 2 HDFE groups{col 51}F({res}   3{txt},{res}     30{txt}){col 67}= {res}    117.70
+{txt}Statistics robust to heteroskedasticity{col 51}Prob > F{col 67}= {res}    0.0000
+{txt}{col 51}R-squared{col 67}= {res}    0.9290
+{txt}{col 51}Adj R-squared{col 67}= {res}    0.9225
+{txt}{col 51}Within R-sq.{col 67}= {res}    0.3884
+{txt}{col 1}Number of clusters ({res}province{txt}) {col 30}= {res}        31{txt}{col 51}Root MSE{col 67}= {res}    0.1186
+
+{txt}{ralign 78:(Std. Err. adjusted for {res:31} clusters in province)}
+{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 14}{c |}{col 26}    Robust
+{col 1}        ln_y{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 11}h {c |}{col 14}{res}{space 2} 1.792663{col 26}{space 2} .1522135{col 37}{space 1}   11.78{col 46}{space 3}0.000{col 54}{space 4} 1.481801{col 67}{space 3} 2.103524
+{txt}{space 11}p {c |}{col 14}{res}{space 2}-.0029144{col 26}{space 2} .0066597{col 37}{space 1}   -0.44{col 46}{space 3}0.665{col 54}{space 4}-.0165154{col 67}{space 3} .0106865
+{txt}{space 11}d {c |}{col 14}{res}{space 2}-.0123646{col 26}{space 2} .0105752{col 37}{space 1}   -1.17{col 46}{space 3}0.252{col 54}{space 4}-.0339621{col 67}{space 3} .0092328
+{txt}{space 7}_cons {c |}{col 14}{res}{space 2} 10.99928{col 26}{space 2} .0482052{col 37}{space 1}  228.18{col 46}{space 3}0.000{col 54}{space 4} 10.90083{col 67}{space 3} 11.09773
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}
+{txt}Absorbed degrees of freedom:
+{res}{col 1}{text}{hline 13}{c TT}{hline 12}{hline 12}{hline 14}{hline 1}{c TRC}
+{col 1}{text} Absorbed FE{col 14}{c |} Categories{col 27} - Redundant{col 39}  = Num. Coefs{col 54}{c |}
+{res}{col 1}{text}{hline 13}{c +}{hline 12}{hline 12}{hline 14}{hline 1}{c RT}
+{col 1}{text}    province{col 14}{c |}{space 1}       31{col 27}{space 1}       31{col 39}{result}{space 1}        0{col 53}{text}*{col 54}{c |}
+{res}{col 1}{text}        year{col 14}{c |}{space 1}       20{col 27}{space 1}        1{col 39}{result}{space 1}       19{col 53}{text} {col 54}{c |}
+{res}{col 1}{text}{hline 13}{c BT}{hline 12}{hline 12}{hline 14}{hline 1}{c BRC}
+* = FE nested within cluster; treated as redundant for DoF computation
+{res}{txt}
+{com}. local b4 = _b[h]
+{txt}
+{com}. local s4 = _se[h]
+{txt}
+{com}. local b4d = _b[d]
+{txt}
+{com}. local s4d = _se[d]
+{txt}
+{com}. eststo m4
+{txt}
+{com}. 
+. * (5) Quadratic falsification: the squared drought term should be ~0
+. reghdfe ln_y h p d d2, absorb(province year) cluster(province)
+{res}{txt}({browse "http://scorreia.com/research/hdfe.pdf":MWFE estimator} converged in 2 iterations)
+{res}
+{txt}HDFE Linear regression{col 51}Number of obs{col 67}= {res}       620
+{txt}Absorbing 2 HDFE groups{col 51}F({res}   4{txt},{res}     30{txt}){col 67}= {res}     95.42
+{txt}Statistics robust to heteroskedasticity{col 51}Prob > F{col 67}= {res}    0.0000
+{txt}{col 51}R-squared{col 67}= {res}    0.9291
+{txt}{col 51}Adj R-squared{col 67}= {res}    0.9225
+{txt}{col 51}Within R-sq.{col 67}= {res}    0.3897
+{txt}{col 1}Number of clusters ({res}province{txt}) {col 30}= {res}        31{txt}{col 51}Root MSE{col 67}= {res}    0.1185
+
+{txt}{ralign 78:(Std. Err. adjusted for {res:31} clusters in province)}
+{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 14}{c |}{col 26}    Robust
+{col 1}        ln_y{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 11}h {c |}{col 14}{res}{space 2} 1.797165{col 26}{space 2} .1526153{col 37}{space 1}   11.78{col 46}{space 3}0.000{col 54}{space 4} 1.485483{col 67}{space 3} 2.108847
+{txt}{space 11}p {c |}{col 14}{res}{space 2}-.0027775{col 26}{space 2} .0065696{col 37}{space 1}   -0.42{col 46}{space 3}0.675{col 54}{space 4}-.0161944{col 67}{space 3} .0106395
+{txt}{space 11}d {c |}{col 14}{res}{space 2}-.0130894{col 26}{space 2} .0104309{col 37}{space 1}   -1.25{col 46}{space 3}0.219{col 54}{space 4}-.0343923{col 67}{space 3} .0082134
+{txt}{space 10}d2 {c |}{col 14}{res}{space 2} .0037035{col 26}{space 2} .0030083{col 37}{space 1}    1.23{col 46}{space 3}0.228{col 54}{space 4}-.0024404{col 67}{space 3} .0098473
+{txt}{space 7}_cons {c |}{col 14}{res}{space 2} 10.99415{col 26}{space 2} .0496085{col 37}{space 1}  221.62{col 46}{space 3}0.000{col 54}{space 4} 10.89284{col 67}{space 3} 11.09547
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}
+{txt}Absorbed degrees of freedom:
+{res}{col 1}{text}{hline 13}{c TT}{hline 12}{hline 12}{hline 14}{hline 1}{c TRC}
+{col 1}{text} Absorbed FE{col 14}{c |} Categories{col 27} - Redundant{col 39}  = Num. Coefs{col 54}{c |}
+{res}{col 1}{text}{hline 13}{c +}{hline 12}{hline 12}{hline 14}{hline 1}{c RT}
+{col 1}{text}    province{col 14}{c |}{space 1}       31{col 27}{space 1}       31{col 39}{result}{space 1}        0{col 53}{text}*{col 54}{c |}
+{res}{col 1}{text}        year{col 14}{c |}{space 1}       20{col 27}{space 1}        1{col 39}{result}{space 1}       19{col 53}{text} {col 54}{c |}
+{res}{col 1}{text}{hline 13}{c BT}{hline 12}{hline 12}{hline 14}{hline 1}{c BRC}
+* = FE nested within cluster; treated as redundant for DoF computation
+{res}{txt}
+{com}. eststo m5
+{txt}
+{com}. 
+. * `estimates save <file>` saves the ACTIVE estimates, not a named one, so make
+. * each stored set active with `estimates restore` before saving it.
+. estimates restore m1
+{txt}(results {stata estimates replay m1:m1} are active now)
+
+{com}. estimates save "output/intermediates/estimates/m1.ster", replace
+{res}{txt}(note: file output/intermediates/estimates/m1.ster not found)
+{txt}file output/intermediates/estimates/m1.ster saved
+
+{com}. estimates restore m2
+{txt}(results {stata estimates replay m2:m2} are active now)
+
+{com}. estimates save "output/intermediates/estimates/m2.ster", replace
+{res}{txt}file output/intermediates/estimates/m2.ster saved
+
+{com}. estimates restore m3
+{txt}(results {stata estimates replay m3:m3} are active now)
+
+{com}. estimates save "output/intermediates/estimates/m3.ster", replace
+{res}{txt}file output/intermediates/estimates/m3.ster saved
+
+{com}. estimates restore m4
+{txt}(results {stata estimates replay m4:m4} are active now)
+
+{com}. estimates save "output/intermediates/estimates/m4.ster", replace
+{res}{txt}(note: file output/intermediates/estimates/m4.ster not found)
+{txt}file output/intermediates/estimates/m4.ster saved
+
+{com}. 
+. * Coefficient summary for the Python coefficient plot. paramcode 1 = hydro
+. * share, 2 = drought; m4 contributes both coefficients.
+. matrix M = (1, 1, `b1', `s1' \ 2, 1, `b2', `s2' \ 3, 2, `b3', `s3' \ 4, 1, `b4', `s4' \ 4, 2, `b4d', `s4d')
+{txt}
+{com}. matrix colnames M = spec paramcode b se
+{txt}
+{com}. svmat M, names(col)
+{txt}
+{com}. keep if !missing(spec)
+{txt}(615 observations deleted)
+
+{com}. gen str1 param = "h"
+{txt}
+{com}. replace param = "d" if paramcode == 2
+{txt}(2 real changes made)
+
+{com}. export delimited spec param b se using "output/intermediates/coefs.csv", replace
+{res}{txt}(note: file output/intermediates/coefs.csv not found)
+{txt}file output/intermediates/coefs.csv saved
+
+{com}. 
+. log close
+      {txt}name:  {res}<unnamed>
+       {txt}log:  {res}/Users/botaoqin/Documents/claude/my-project/output/logs/02_regressions.smcl
+  {txt}log type:  {res}smcl
+ {txt}closed on:  {res}28 Oct 2026, 09:40:36
+{txt}{.-}
+{smcl}
+{txt}{sf}{ul off}

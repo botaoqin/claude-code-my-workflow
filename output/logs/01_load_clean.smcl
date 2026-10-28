@@ -1,0 +1,83 @@
+{smcl}
+{com}{sf}{ul off}{txt}{.-}
+      name:  {res}<unnamed>
+       {txt}log:  {res}/Users/botaoqin/Documents/claude/my-project/output/logs/01_load_clean.smcl
+  {txt}log type:  {res}smcl
+ {txt}opened on:  {res}28 Oct 2026, 09:40:35
+{txt}
+{com}. 
+. import delimited "output/intermediates/synthetic_panel.csv", clear
+{res}{text}(7 vars, 620 obs)
+
+{com}. assert inrange(province, 1, 31)
+{txt}
+{com}. assert inrange(year, 2000, 2019)
+{txt}
+{com}. assert !missing(h, d, p, ln_y, y_level)
+{txt}
+{com}. count
+  {res}620
+{txt}
+{com}. assert r(N) == 620
+{txt}
+{com}. 
+. label var province "Province id"
+{txt}
+{com}. label var year     "Year"
+{txt}
+{com}. label var d        "Drought index (std.)"
+{txt}
+{com}. label var p        "Precip. anomaly (std.)"
+{txt}
+{com}. label var h        "Hydro share (0-1)"
+{txt}
+{com}. label var ln_y     "Log industrial output"
+{txt}
+{com}. label var y_level  "Industrial output (index)"
+{txt}
+{com}. 
+. gen d2 = d^2
+{txt}
+{com}. label var d2 "Drought index squared"
+{txt}
+{com}. 
+. xtset province year
+{res}{txt}{col 8}panel variable:  {res}province (strongly balanced)
+{txt}{col 9}time variable:  {res}{col 25}year, 2000 to 2019
+{txt}{col 17}delta:  {res}1 unit
+{txt}
+{com}. save "output/intermediates/panel.dta", replace
+{txt}(note: file output/intermediates/panel.dta not found)
+file output/intermediates/panel.dta saved
+
+{com}. 
+. estpost summarize h d p ln_y
+
+{txt}{space 0}{space 0}{ralign 12:}{space 1}{c |}{space 1}{ralign 9:e(count)}{space 1}{space 1}{ralign 9:e(sum_w)}{space 1}{space 1}{ralign 9:e(mean)}{space 1}{space 1}{ralign 9:e(Var)}{space 1}{space 1}{ralign 9:e(sd)}{space 1}
+{space 0}{hline 13}{c   +}{hline 11}{hline 11}{hline 11}{hline 11}{hline 11}
+{space 0}{space 0}{ralign 12:h}{space 1}{c |}{space 1}{ralign 9:{res:{sf:      620}}}{space 1}{space 1}{ralign 9:{res:{sf:      620}}}{space 1}{space 1}{ralign 9:{res:{sf: .3166943}}}{space 1}{space 1}{ralign 9:{res:{sf: .0090827}}}{space 1}{space 1}{ralign 9:{res:{sf: .0953034}}}{space 1}
+{space 0}{space 0}{ralign 12:d}{space 1}{c |}{space 1}{ralign 9:{res:{sf:      620}}}{space 1}{space 1}{ralign 9:{res:{sf:      620}}}{space 1}{space 1}{ralign 9:{res:{sf:-1.01e-09}}}{space 1}{space 1}{ralign 9:{res:{sf: 1.001616}}}{space 1}{space 1}{ralign 9:{res:{sf: 1.000807}}}{space 1}
+{space 0}{space 0}{ralign 12:p}{space 1}{c |}{space 1}{ralign 9:{res:{sf:      620}}}{space 1}{space 1}{ralign 9:{res:{sf:      620}}}{space 1}{space 1}{ralign 9:{res:{sf:-1.12e-09}}}{space 1}{space 1}{ralign 9:{res:{sf: 1.001616}}}{space 1}{space 1}{ralign 9:{res:{sf: 1.000807}}}{space 1}
+{space 0}{space 0}{ralign 12:ln_y}{space 1}{c |}{space 1}{ralign 9:{res:{sf:      620}}}{space 1}{space 1}{ralign 9:{res:{sf:      620}}}{space 1}{space 1}{ralign 9:{res:{sf: 11.56701}}}{space 1}{space 1}{ralign 9:{res:{sf: .1812326}}}{space 1}{space 1}{ralign 9:{res:{sf: .4257143}}}{space 1}
+
+{space 0}{space 0}{ralign 12:}{space 1}{c |}{space 1}{ralign 9:e(min)}{space 1}{space 1}{ralign 9:e(max)}{space 1}{space 1}{ralign 9:e(sum)}{space 1}
+{space 0}{hline 13}{c   +}{hline 11}{hline 11}{hline 11}
+{space 0}{space 0}{ralign 12:h}{space 1}{c |}{space 1}{ralign 9:{res:{sf: .0706285}}}{space 1}{space 1}{ralign 9:{res:{sf: .5877596}}}{space 1}{space 1}{ralign 9:{res:{sf: 196.3505}}}{space 1}
+{space 0}{space 0}{ralign 12:d}{space 1}{c |}{space 1}{ralign 9:{res:{sf:-2.950088}}}{space 1}{space 1}{ralign 9:{res:{sf: 3.501299}}}{space 1}{space 1}{ralign 9:{res:{sf:-6.25e-07}}}{space 1}
+{space 0}{space 0}{ralign 12:p}{space 1}{c |}{space 1}{ralign 9:{res:{sf:-3.189293}}}{space 1}{space 1}{ralign 9:{res:{sf: 3.017101}}}{space 1}{space 1}{ralign 9:{res:{sf:-6.95e-07}}}{space 1}
+{space 0}{space 0}{ralign 12:ln_y}{space 1}{c |}{space 1}{ralign 9:{res:{sf: 10.25968}}}{space 1}{space 1}{ralign 9:{res:{sf:  12.5941}}}{space 1}{space 1}{ralign 9:{res:{sf: 7171.544}}}{space 1}
+
+{com}. esttab using "output/tables/descriptives.tex", replace booktabs label ///
+>     nonumber noobs cells("mean(fmt(3)) sd(fmt(3))") ///
+>     collabels("Mean" "Std. Dev.") nonotes
+{res}{txt}(output written to {browse  `"output/tables/descriptives.tex"'})
+
+{com}. 
+. log close
+      {txt}name:  {res}<unnamed>
+       {txt}log:  {res}/Users/botaoqin/Documents/claude/my-project/output/logs/01_load_clean.smcl
+  {txt}log type:  {res}smcl
+ {txt}closed on:  {res}28 Oct 2026, 09:40:36
+{txt}{.-}
+{smcl}
+{txt}{sf}{ul off}
