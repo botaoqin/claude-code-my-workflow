@@ -1,0 +1,1980 @@
+{smcl}
+{com}{sf}{ul off}{txt}{.-}
+      name:  {res}<unnamed>
+       {txt}log:  {res}/Users/botaoqin/Documents/claude/my-project/output/logs/32_spei_long_design.smcl
+  {txt}log type:  {res}smcl
+ {txt}opened on:  {res}17 Nov 2026, 17:33:02
+{txt}
+{com}. 
+. * case(preserve): import delimited lowercases header names by default.
+. import delimited "output/intermediates/real_panel_spei_long.csv", clear case(preserve)
+{res}{text}(66 vars, 9,858 obs)
+
+{com}. 
+. * --- Identical estimation sample to 07 / 31 --------------------------------
+. keep if !missing(g_IndVA, SPEI3_z, heat_z, HydroShare_z, ///
+>                  hydro_gen, thermal_gen, total_gen)
+{txt}(2,597 observations deleted)
+
+{com}. drop if inlist(month, 1, 2)
+{txt}(286 observations deleted)
+
+{com}. drop if year < 2002
+{txt}(0 observations deleted)
+
+{com}. 
+. count
+  {res}6,975
+{txt}
+{com}. assert r(N) == 6975
+{txt}
+{com}. assert inrange(month, 3, 12)
+{txt}
+{com}. assert inrange(year, 2002, 2026)
+{txt}
+{com}. assert !missing(SPEI3_L)
+{txt}
+{com}. 
+. egen byte tag_prov = tag(prov_id)
+{txt}
+{com}. count if tag_prov
+  {res}29
+{txt}
+{com}. assert r(N) == 29
+{txt}
+{com}. drop tag_prov
+{txt}
+{com}. 
+. * --- Sample-standardised versions of the long-baseline series --------------
+. egen SPEI1_L_z = std(SPEI1_L)
+{txt}
+{com}. egen SPEI3_L_z = std(SPEI3_L)
+{txt}
+{com}. egen SPEI6_L_z = std(SPEI6_L)
+{txt}
+{com}. gen heat_x_spei_L = heat_z * SPEI3_L_z
+{txt}
+{com}. 
+. * --- Mechanism outcomes (as in 12_decompose_generation.do) -----------------
+. gen ln_hydro   = log(hydro_gen + 1)
+{txt}
+{com}. gen ln_thermal = log(thermal_gen + 1)
+{txt}
+{com}. gen ln_total   = log(total_gen + 1)
+{txt}
+{com}. 
+. * ===========================================================================
+. * (a) 0.5-SD bin diagnostic on raw SPEI3_L
+. *     Bins: <=-2, (-2,-1.5], ..., (1.5,2], >2; reference (-0.5,0].
+. * ===========================================================================
+. gen byte spbin = .
+{txt}(6,975 missing values generated)
+
+{com}. replace spbin = 1  if SPEI3_L <= -2
+{txt}(306 real changes made)
+
+{com}. replace spbin = 2  if SPEI3_L > -2   & SPEI3_L <= -1.5
+{txt}(368 real changes made)
+
+{com}. replace spbin = 3  if SPEI3_L > -1.5 & SPEI3_L <= -1
+{txt}(747 real changes made)
+
+{com}. replace spbin = 4  if SPEI3_L > -1   & SPEI3_L <= -0.5
+{txt}(1,099 real changes made)
+
+{com}. replace spbin = 5  if SPEI3_L > -0.5 & SPEI3_L <= 0
+{txt}(1,307 real changes made)
+
+{com}. replace spbin = 6  if SPEI3_L > 0    & SPEI3_L <= 0.5
+{txt}(1,246 real changes made)
+
+{com}. replace spbin = 7  if SPEI3_L > 0.5  & SPEI3_L <= 1
+{txt}(1,170 real changes made)
+
+{com}. replace spbin = 8  if SPEI3_L > 1    & SPEI3_L <= 1.5
+{txt}(586 real changes made)
+
+{com}. replace spbin = 9  if SPEI3_L > 1.5  & SPEI3_L <= 2
+{txt}(139 real changes made)
+
+{com}. replace spbin = 10 if SPEI3_L > 2
+{txt}(7 real changes made)
+
+{com}. label define spbin 1 "<= -2" 2 "(-2,-1.5]" 3 "(-1.5,-1]" 4 "(-1,-.5]" ///
+>                    5 "(-.5,0] (ref)" 6 "(0,.5]" 7 "(.5,1]" 8 "(1,1.5]" ///
+>                    9 "(1.5,2]" 10 "> 2"
+{txt}
+{com}. label values spbin spbin
+{txt}
+{com}. tab spbin, missing
+
+        {txt}spbin {c |}      Freq.     Percent        Cum.
+{hline 14}{c +}{hline 35}
+        <= -2 {c |}{res}        306        4.39        4.39
+{txt}    (-2,-1.5] {c |}{res}        368        5.28        9.66
+{txt}    (-1.5,-1] {c |}{res}        747       10.71       20.37
+{txt}     (-1,-.5] {c |}{res}      1,099       15.76       36.13
+{txt}(-.5,0] (ref) {c |}{res}      1,307       18.74       54.87
+{txt}       (0,.5] {c |}{res}      1,246       17.86       72.73
+{txt}       (.5,1] {c |}{res}      1,170       16.77       89.51
+{txt}      (1,1.5] {c |}{res}        586        8.40       97.91
+{txt}      (1.5,2] {c |}{res}        139        1.99       99.90
+{txt}          > 2 {c |}{res}          7        0.10      100.00
+{txt}{hline 14}{c +}{hline 35}
+        Total {c |}{res}      6,975      100.00
+{txt}
+{com}. 
+. forvalues j = 1/10 {c -(}
+{txt}  2{com}.     gen byte b`j' = (spbin == `j') if !missing(SPEI3_L)
+{txt}  3{com}. {c )-}
+{txt}
+{com}. label var b1  "SPEI $\leq -2$"
+{txt}
+{com}. label var b2  "$-2 <$ SPEI $\leq -1.5$"
+{txt}
+{com}. label var b3  "$-1.5 <$ SPEI $\leq -1$"
+{txt}
+{com}. label var b4  "$-1 <$ SPEI $\leq -0.5$"
+{txt}
+{com}. label var b6  "$0 <$ SPEI $\leq 0.5$"
+{txt}
+{com}. label var b7  "$0.5 <$ SPEI $\leq 1$"
+{txt}
+{com}. label var b8  "$1 <$ SPEI $\leq 1.5$"
+{txt}
+{com}. label var b9  "$1.5 <$ SPEI $\leq 2$"
+{txt}
+{com}. label var b10 "SPEI $> 2$"
+{txt}
+{com}. 
+. reghdfe g_IndVA b1 b2 b3 b4 b6 b7 b8 b9 b10 heat_z heat_x_spei_L ///
+>     precip_sum, absorb(prov_id ym) vce(cluster prov_id)
+{res}{txt}({browse "http://scorreia.com/research/hdfe.pdf":MWFE estimator} converged in 4 iterations)
+{res}
+{txt}HDFE Linear regression{col 51}Number of obs{col 67}= {res}     6,975
+{txt}Absorbing 2 HDFE groups{col 51}F({res}  12{txt},{res}     28{txt}){col 67}= {res}      2.98
+{txt}Statistics robust to heteroskedasticity{col 51}Prob > F{col 67}= {res}    0.0085
+{txt}{col 51}R-squared{col 67}= {res}    0.5983
+{txt}{col 51}Adj R-squared{col 67}= {res}    0.5814
+{txt}{col 51}Within R-sq.{col 67}= {res}    0.0032
+{txt}{col 1}Number of clusters ({res}prov_id{txt}) {col 30}= {res}        29{txt}{col 51}Root MSE{col 67}= {res}    0.0550
+
+{txt}{ralign 78:(Std. Err. adjusted for {res:29} clusters in prov_id)}
+{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 14}{c |}{col 26}    Robust
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 10}b1 {c |}{col 14}{res}{space 2} .0041895{col 26}{space 2} .0045696{col 37}{space 1}    0.92{col 46}{space 3}0.367{col 54}{space 4}-.0051709{col 67}{space 3} .0135499
+{txt}{space 10}b2 {c |}{col 14}{res}{space 2} .0082755{col 26}{space 2} .0034136{col 37}{space 1}    2.42{col 46}{space 3}0.022{col 54}{space 4}  .001283{col 67}{space 3}  .015268
+{txt}{space 10}b3 {c |}{col 14}{res}{space 2} .0055323{col 26}{space 2} .0033918{col 37}{space 1}    1.63{col 46}{space 3}0.114{col 54}{space 4}-.0014155{col 67}{space 3} .0124802
+{txt}{space 10}b4 {c |}{col 14}{res}{space 2} .0057361{col 26}{space 2} .0025145{col 37}{space 1}    2.28{col 46}{space 3}0.030{col 54}{space 4} .0005854{col 67}{space 3} .0108869
+{txt}{space 10}b6 {c |}{col 14}{res}{space 2} .0028584{col 26}{space 2} .0019893{col 37}{space 1}    1.44{col 46}{space 3}0.162{col 54}{space 4}-.0012166{col 67}{space 3} .0069334
+{txt}{space 10}b7 {c |}{col 14}{res}{space 2}  .005439{col 26}{space 2} .0021999{col 37}{space 1}    2.47{col 46}{space 3}0.020{col 54}{space 4} .0009327{col 67}{space 3} .0099453
+{txt}{space 10}b8 {c |}{col 14}{res}{space 2} .0021452{col 26}{space 2} .0030491{col 37}{space 1}    0.70{col 46}{space 3}0.488{col 54}{space 4}-.0041006{col 67}{space 3} .0083911
+{txt}{space 10}b9 {c |}{col 14}{res}{space 2} .0138538{col 26}{space 2} .0057141{col 37}{space 1}    2.42{col 46}{space 3}0.022{col 54}{space 4} .0021489{col 67}{space 3} .0255587
+{txt}{space 9}b10 {c |}{col 14}{res}{space 2}-.0006436{col 26}{space 2} .0097452{col 37}{space 1}   -0.07{col 46}{space 3}0.948{col 54}{space 4}-.0206056{col 67}{space 3} .0193185
+{txt}{space 6}heat_z {c |}{col 14}{res}{space 2} -.000805{col 26}{space 2}  .000678{col 37}{space 1}   -1.19{col 46}{space 3}0.245{col 54}{space 4}-.0021939{col 67}{space 3} .0005838
+{txt}heat_x_spe~L {c |}{col 14}{res}{space 2} .0008226{col 26}{space 2} .0009501{col 37}{space 1}    0.87{col 46}{space 3}0.394{col 54}{space 4}-.0011235{col 67}{space 3} .0027688
+{txt}{space 2}precip_sum {c |}{col 14}{res}{space 2}-.0000224{col 26}{space 2} .0000104{col 37}{space 1}   -2.15{col 46}{space 3}0.040{col 54}{space 4}-.0000436{col 67}{space 3}-1.09e-06
+{txt}{space 7}_cons {c |}{col 14}{res}{space 2} .1135915{col 26}{space 2} .0018016{col 37}{space 1}   63.05{col 46}{space 3}0.000{col 54}{space 4} .1099012{col 67}{space 3} .1172818
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}
+{txt}Absorbed degrees of freedom:
+{res}{col 1}{text}{hline 13}{c TT}{hline 12}{hline 12}{hline 14}{hline 1}{c TRC}
+{col 1}{text} Absorbed FE{col 14}{c |} Categories{col 27} - Redundant{col 39}  = Num. Coefs{col 54}{c |}
+{res}{col 1}{text}{hline 13}{c +}{hline 12}{hline 12}{hline 14}{hline 1}{c RT}
+{col 1}{text}     prov_id{col 14}{c |}{space 1}       29{col 27}{space 1}       29{col 39}{result}{space 1}        0{col 53}{text}*{col 54}{c |}
+{res}{col 1}{text}          ym{col 14}{c |}{space 1}      242{col 27}{space 1}        1{col 39}{result}{space 1}      241{col 53}{text} {col 54}{c |}
+{res}{col 1}{text}{hline 13}{c BT}{hline 12}{hline 12}{hline 14}{hline 1}{c BRC}
+* = FE nested within cluster; treated as redundant for DoF computation
+{res}{txt}
+{com}. estimates store bins05
+{txt}
+{com}. 
+. * Export the nine bin coefficients for the Python diagnostic figure.
+. matrix B = J(9, 3, .)
+{txt}
+{com}. local binvals "1 2 3 4 6 7 8 9 10"
+{txt}
+{com}. local binno = 0
+{txt}
+{com}. foreach v in b1 b2 b3 b4 b6 b7 b8 b9 b10 {c -(}
+{txt}  2{com}.     local ++binno
+{txt}  3{com}.     local bid : word `binno' of `binvals'
+{txt}  4{com}.     local bb = _b[`v']
+{txt}  5{com}.     local ss = _se[`v']
+{txt}  6{com}.     matrix B[`binno', 1] = `bid'
+{txt}  7{com}.     matrix B[`binno', 2] = `bb'
+{txt}  8{com}.     matrix B[`binno', 3] = `ss'
+{txt}  9{com}. {c )-}
+{txt}
+{com}. matrix colnames B = bin b se
+{txt}
+{com}. preserve
+{txt}
+{com}.     clear
+{txt}
+{com}.     svmat B, names(col)
+{txt}number of observations will be reset to 9
+Press any key to continue, or Break to abort
+{p}
+number of observations (_N)  was 0,
+now 9
+{p_end}
+
+{com}.     export delimited bin b se using "output/intermediates/spei_long_bins.csv", replace
+{res}{txt}(note: file output/intermediates/spei_long_bins.csv not found)
+{txt}file output/intermediates/spei_long_bins.csv saved
+
+{com}. restore
+{txt}
+{com}. 
+. * ===========================================================================
+. * (b) Specification A: level-shift dummies on raw SPEI3_L
+. *     Main cutoffs: D1 <=-1.5, D2 (-1.5,-1], W1 [1,1.5), W2 >=1.5,
+. *     reference (-1,1).
+. * ===========================================================================
+. gen byte d1 = (SPEI3_L <= -1.5) if !missing(SPEI3_L)
+{txt}
+{com}. gen byte d2 = (SPEI3_L > -1.5 & SPEI3_L <= -1) if !missing(SPEI3_L)
+{txt}
+{com}. gen byte w1 = (SPEI3_L >= 1 & SPEI3_L < 1.5) if !missing(SPEI3_L)
+{txt}
+{com}. gen byte w2 = (SPEI3_L >= 1.5) if !missing(SPEI3_L)
+{txt}
+{com}. gen byte rf = (SPEI3_L > -1 & SPEI3_L < 1) if !missing(SPEI3_L)
+{txt}
+{com}. egen byte ncat = rowtotal(d1 d2 w1 w2 rf)
+{txt}
+{com}. assert ncat == 1 if !missing(SPEI3_L)
+{txt}
+{com}. 
+. * Collapsed headline dummy (memo's collapse rule)
+. gen byte drought = (SPEI3_L <= -1) if !missing(SPEI3_L)
+{txt}
+{com}. 
+. * Alternative drought cutoffs: -2 / -1
+. gen byte d1b = (SPEI3_L <= -2) if !missing(SPEI3_L)
+{txt}
+{com}. gen byte d2b = (SPEI3_L > -2 & SPEI3_L <= -1) if !missing(SPEI3_L)
+{txt}
+{com}. 
+. * SPEI1 and SPEI6 category versions
+. foreach v in SPEI1_L SPEI6_L {c -(}
+{txt}  2{com}.     gen byte `v'_d1 = (`v' <= -1.5) if !missing(`v')
+{txt}  3{com}.     gen byte `v'_d2 = (`v' > -1.5 & `v' <= -1) if !missing(`v')
+{txt}  4{com}.     gen byte `v'_w1 = (`v' >= 1 & `v' < 1.5) if !missing(`v')
+{txt}  5{com}.     gen byte `v'_w2 = (`v' >= 1.5) if !missing(`v')
+{txt}  6{com}.     gen byte `v'_rf = (`v' > -1 & `v' < 1) if !missing(`v')
+{txt}  7{com}. {c )-}
+{txt}
+{com}. 
+. gen d1_x_h    = d1 * HydroShare_z
+{txt}
+{com}. gen d2_x_h    = d2 * HydroShare_z
+{txt}
+{com}. gen w1_x_h    = w1 * HydroShare_z
+{txt}
+{com}. gen w2_x_h    = w2 * HydroShare_z
+{txt}
+{com}. gen dr_x_h    = drought * HydroShare_z
+{txt}
+{com}. gen d1b_x_h   = d1b * HydroShare_z
+{txt}
+{com}. gen d2b_x_h   = d2b * HydroShare_z
+{txt}
+{com}. gen SPEI1_L_d1_x_h = SPEI1_L_d1 * HydroShare_z
+{txt}
+{com}. gen SPEI1_L_d2_x_h = SPEI1_L_d2 * HydroShare_z
+{txt}
+{com}. gen SPEI1_L_w1_x_h = SPEI1_L_w1 * HydroShare_z
+{txt}
+{com}. gen SPEI1_L_w2_x_h = SPEI1_L_w2 * HydroShare_z
+{txt}
+{com}. gen SPEI6_L_d1_x_h = SPEI6_L_d1 * HydroShare_z
+{txt}
+{com}. gen SPEI6_L_d2_x_h = SPEI6_L_d2 * HydroShare_z
+{txt}
+{com}. gen SPEI6_L_w1_x_h = SPEI6_L_w1 * HydroShare_z
+{txt}
+{com}. gen SPEI6_L_w2_x_h = SPEI6_L_w2 * HydroShare_z
+{txt}
+{com}. 
+. label var d1  "D1: SPEI3 $\leq -1.5$"
+{txt}
+{com}. label var d2  "D2: $-1.5 <$ SPEI3 $\leq -1$"
+{txt}
+{com}. label var w1  "W1: $1 \leq$ SPEI3 $< 1.5$"
+{txt}
+{com}. label var w2  "W2: SPEI3 $\geq 1.5$"
+{txt}
+{com}. label var drought "Drought: SPEI3 $\leq -1$"
+{txt}
+{com}. label var d1b "D1: SPEI3 $\leq -2$"
+{txt}
+{com}. label var d2b "D2: $-2 <$ SPEI3 $\leq -1$"
+{txt}
+{com}. label var d1_x_h "D1(-1.5) $\times$ HydroShare(z)"
+{txt}
+{com}. label var d2_x_h "D2(-1.5/-1) $\times$ HydroShare(z)"
+{txt}
+{com}. label var w1_x_h "W1 $\times$ HydroShare(z)"
+{txt}
+{com}. label var w2_x_h "W2 $\times$ HydroShare(z)"
+{txt}
+{com}. label var dr_x_h "Drought $\times$ HydroShare(z)"
+{txt}
+{com}. label var d1b_x_h "D1(-2) $\times$ HydroShare(z)"
+{txt}
+{com}. label var d2b_x_h "D2(-2/-1) $\times$ HydroShare(z)"
+{txt}
+{com}. label var SPEI1_L_d1_x_h "D1 $\times$ HydroShare(z) [SPEI1]"
+{txt}
+{com}. label var SPEI1_L_d2_x_h "D2 $\times$ HydroShare(z) [SPEI1]"
+{txt}
+{com}. label var SPEI1_L_w1_x_h "W1 $\times$ HydroShare(z) [SPEI1]"
+{txt}
+{com}. label var SPEI1_L_w2_x_h "W2 $\times$ HydroShare(z) [SPEI1]"
+{txt}
+{com}. label var SPEI6_L_d1_x_h "D1 $\times$ HydroShare(z) [SPEI6]"
+{txt}
+{com}. label var SPEI6_L_d2_x_h "D2 $\times$ HydroShare(z) [SPEI6]"
+{txt}
+{com}. label var SPEI6_L_w1_x_h "W1 $\times$ HydroShare(z) [SPEI6]"
+{txt}
+{com}. label var SPEI6_L_w2_x_h "W2 $\times$ HydroShare(z) [SPEI6]"
+{txt}
+{com}. label var SPEI1_L_d1 "D1: SPEI1 $\leq -1.5$"
+{txt}
+{com}. label var SPEI1_L_d2 "D2: $-1.5 <$ SPEI1 $\leq -1$"
+{txt}
+{com}. label var SPEI1_L_w1 "W1: $1 \leq$ SPEI1 $< 1.5$"
+{txt}
+{com}. label var SPEI1_L_w2 "W2: SPEI1 $\geq 1.5$"
+{txt}
+{com}. label var SPEI6_L_d1 "D1: SPEI6 $\leq -1.5$"
+{txt}
+{com}. label var SPEI6_L_d2 "D2: $-1.5 <$ SPEI6 $\leq -1$"
+{txt}
+{com}. label var SPEI6_L_w1 "W1: $1 \leq$ SPEI6 $< 1.5$"
+{txt}
+{com}. label var SPEI6_L_w2 "W2: SPEI6 $\geq 1.5$"
+{txt}
+{com}. 
+. eststo clear
+{txt}
+{com}. 
+. reghdfe g_IndVA d1 d2 w1 w2 heat_z heat_x_spei_L precip_sum, ///
+>     absorb(prov_id ym) vce(cluster prov_id)
+{res}{txt}({browse "http://scorreia.com/research/hdfe.pdf":MWFE estimator} converged in 4 iterations)
+{res}
+{txt}HDFE Linear regression{col 51}Number of obs{col 67}= {res}     6,975
+{txt}Absorbing 2 HDFE groups{col 51}F({res}   7{txt},{res}     28{txt}){col 67}= {res}      2.85
+{txt}Statistics robust to heteroskedasticity{col 51}Prob > F{col 67}= {res}    0.0225
+{txt}{col 51}R-squared{col 67}= {res}    0.5977
+{txt}{col 51}Adj R-squared{col 67}= {res}    0.5811
+{txt}{col 51}Within R-sq.{col 67}= {res}    0.0018
+{txt}{col 1}Number of clusters ({res}prov_id{txt}) {col 30}= {res}        29{txt}{col 51}Root MSE{col 67}= {res}    0.0550
+
+{txt}{ralign 78:(Std. Err. adjusted for {res:29} clusters in prov_id)}
+{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 14}{c |}{col 26}    Robust
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 10}d1 {c |}{col 14}{res}{space 2} .0032773{col 26}{space 2} .0024575{col 37}{space 1}    1.33{col 46}{space 3}0.193{col 54}{space 4}-.0017566{col 67}{space 3} .0083112
+{txt}{space 10}d2 {c |}{col 14}{res}{space 2}  .002244{col 26}{space 2} .0025222{col 37}{space 1}    0.89{col 46}{space 3}0.381{col 54}{space 4}-.0029225{col 67}{space 3} .0074105
+{txt}{space 10}w1 {c |}{col 14}{res}{space 2}-.0017654{col 26}{space 2} .0026254{col 37}{space 1}   -0.67{col 46}{space 3}0.507{col 54}{space 4}-.0071433{col 67}{space 3} .0036124
+{txt}{space 10}w2 {c |}{col 14}{res}{space 2} .0090827{col 26}{space 2} .0046626{col 37}{space 1}    1.95{col 46}{space 3}0.062{col 54}{space 4}-.0004681{col 67}{space 3} .0186336
+{txt}{space 6}heat_z {c |}{col 14}{res}{space 2}-.0008551{col 26}{space 2} .0006634{col 37}{space 1}   -1.29{col 46}{space 3}0.208{col 54}{space 4} -.002214{col 67}{space 3} .0005037
+{txt}heat_x_spe~L {c |}{col 14}{res}{space 2} .0009135{col 26}{space 2} .0009701{col 37}{space 1}    0.94{col 46}{space 3}0.354{col 54}{space 4}-.0010736{col 67}{space 3} .0029007
+{txt}{space 2}precip_sum {c |}{col 14}{res}{space 2} -.000019{col 26}{space 2} 8.56e-06{col 37}{space 1}   -2.22{col 46}{space 3}0.035{col 54}{space 4}-.0000366{col 67}{space 3}-1.49e-06
+{txt}{space 7}_cons {c |}{col 14}{res}{space 2} .1166497{col 26}{space 2} .0008589{col 37}{space 1}  135.81{col 46}{space 3}0.000{col 54}{space 4} .1148903{col 67}{space 3} .1184092
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}
+{txt}Absorbed degrees of freedom:
+{res}{col 1}{text}{hline 13}{c TT}{hline 12}{hline 12}{hline 14}{hline 1}{c TRC}
+{col 1}{text} Absorbed FE{col 14}{c |} Categories{col 27} - Redundant{col 39}  = Num. Coefs{col 54}{c |}
+{res}{col 1}{text}{hline 13}{c +}{hline 12}{hline 12}{hline 14}{hline 1}{c RT}
+{col 1}{text}     prov_id{col 14}{c |}{space 1}       29{col 27}{space 1}       29{col 39}{result}{space 1}        0{col 53}{text}*{col 54}{c |}
+{res}{col 1}{text}          ym{col 14}{c |}{space 1}      242{col 27}{space 1}        1{col 39}{result}{space 1}      241{col 53}{text} {col 54}{c |}
+{res}{col 1}{text}{hline 13}{c BT}{hline 12}{hline 12}{hline 14}{hline 1}{c BRC}
+* = FE nested within cluster; treated as redundant for DoF computation
+{res}{txt}
+{com}. eststo A1
+{txt}
+{com}. 
+. reghdfe g_IndVA d1 d2 w1 w2 d1_x_h d2_x_h w1_x_h w2_x_h ///
+>     heat_z heat_x_spei_L precip_sum, absorb(prov_id ym) vce(cluster prov_id)
+{res}{txt}({browse "http://scorreia.com/research/hdfe.pdf":MWFE estimator} converged in 4 iterations)
+{res}
+{txt}HDFE Linear regression{col 51}Number of obs{col 67}= {res}     6,975
+{txt}Absorbing 2 HDFE groups{col 51}F({res}  11{txt},{res}     28{txt}){col 67}= {res}      5.86
+{txt}Statistics robust to heteroskedasticity{col 51}Prob > F{col 67}= {res}    0.0001
+{txt}{col 51}R-squared{col 67}= {res}    0.5983
+{txt}{col 51}Adj R-squared{col 67}= {res}    0.5815
+{txt}{col 51}Within R-sq.{col 67}= {res}    0.0032
+{txt}{col 1}Number of clusters ({res}prov_id{txt}) {col 30}= {res}        29{txt}{col 51}Root MSE{col 67}= {res}    0.0550
+
+{txt}{ralign 78:(Std. Err. adjusted for {res:29} clusters in prov_id)}
+{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 14}{c |}{col 26}    Robust
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 10}d1 {c |}{col 14}{res}{space 2} .0030302{col 26}{space 2} .0024531{col 37}{space 1}    1.24{col 46}{space 3}0.227{col 54}{space 4}-.0019948{col 67}{space 3} .0080552
+{txt}{space 10}d2 {c |}{col 14}{res}{space 2} .0021981{col 26}{space 2} .0023793{col 37}{space 1}    0.92{col 46}{space 3}0.363{col 54}{space 4}-.0026756{col 67}{space 3} .0070718
+{txt}{space 10}w1 {c |}{col 14}{res}{space 2}-.0006448{col 26}{space 2}  .002881{col 37}{space 1}   -0.22{col 46}{space 3}0.825{col 54}{space 4}-.0065463{col 67}{space 3} .0052566
+{txt}{space 10}w2 {c |}{col 14}{res}{space 2} .0091442{col 26}{space 2} .0047297{col 37}{space 1}    1.93{col 46}{space 3}0.063{col 54}{space 4}-.0005441{col 67}{space 3} .0188324
+{txt}{space 6}d1_x_h {c |}{col 14}{res}{space 2} .0007022{col 26}{space 2} .0015255{col 37}{space 1}    0.46{col 46}{space 3}0.649{col 54}{space 4}-.0024227{col 67}{space 3}  .003827
+{txt}{space 6}d2_x_h {c |}{col 14}{res}{space 2} .0053474{col 26}{space 2} .0039238{col 37}{space 1}    1.36{col 46}{space 3}0.184{col 54}{space 4}-.0026901{col 67}{space 3} .0133848
+{txt}{space 6}w1_x_h {c |}{col 14}{res}{space 2} -.003804{col 26}{space 2} .0021375{col 37}{space 1}   -1.78{col 46}{space 3}0.086{col 54}{space 4}-.0081824{col 67}{space 3} .0005744
+{txt}{space 6}w2_x_h {c |}{col 14}{res}{space 2} .0003198{col 26}{space 2} .0056774{col 37}{space 1}    0.06{col 46}{space 3}0.955{col 54}{space 4}-.0113099{col 67}{space 3} .0119495
+{txt}{space 6}heat_z {c |}{col 14}{res}{space 2}-.0009502{col 26}{space 2} .0007004{col 37}{space 1}   -1.36{col 46}{space 3}0.186{col 54}{space 4}-.0023848{col 67}{space 3} .0004845
+{txt}heat_x_spe~L {c |}{col 14}{res}{space 2} .0007706{col 26}{space 2} .0010045{col 37}{space 1}    0.77{col 46}{space 3}0.449{col 54}{space 4} -.001287{col 67}{space 3} .0028281
+{txt}{space 2}precip_sum {c |}{col 14}{res}{space 2}-.0000196{col 26}{space 2} 8.51e-06{col 37}{space 1}   -2.30{col 46}{space 3}0.029{col 54}{space 4} -.000037{col 67}{space 3}-2.18e-06
+{txt}{space 7}_cons {c |}{col 14}{res}{space 2} .1167711{col 26}{space 2} .0008804{col 37}{space 1}  132.64{col 46}{space 3}0.000{col 54}{space 4} .1149678{col 67}{space 3} .1185745
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}
+{txt}Absorbed degrees of freedom:
+{res}{col 1}{text}{hline 13}{c TT}{hline 12}{hline 12}{hline 14}{hline 1}{c TRC}
+{col 1}{text} Absorbed FE{col 14}{c |} Categories{col 27} - Redundant{col 39}  = Num. Coefs{col 54}{c |}
+{res}{col 1}{text}{hline 13}{c +}{hline 12}{hline 12}{hline 14}{hline 1}{c RT}
+{col 1}{text}     prov_id{col 14}{c |}{space 1}       29{col 27}{space 1}       29{col 39}{result}{space 1}        0{col 53}{text}*{col 54}{c |}
+{res}{col 1}{text}          ym{col 14}{c |}{space 1}      242{col 27}{space 1}        1{col 39}{result}{space 1}      241{col 53}{text} {col 54}{c |}
+{res}{col 1}{text}{hline 13}{c BT}{hline 12}{hline 12}{hline 14}{hline 1}{c BRC}
+* = FE nested within cluster; treated as redundant for DoF computation
+{res}{txt}
+{com}. eststo A2
+{txt}
+{com}. 
+. reghdfe g_IndVA drought dr_x_h heat_z heat_x_spei_L precip_sum, ///
+>     absorb(prov_id ym) vce(cluster prov_id)
+{res}{txt}({browse "http://scorreia.com/research/hdfe.pdf":MWFE estimator} converged in 4 iterations)
+{res}
+{txt}HDFE Linear regression{col 51}Number of obs{col 67}= {res}     6,975
+{txt}Absorbing 2 HDFE groups{col 51}F({res}   5{txt},{res}     28{txt}){col 67}= {res}      1.34
+{txt}Statistics robust to heteroskedasticity{col 51}Prob > F{col 67}= {res}    0.2771
+{txt}{col 51}R-squared{col 67}= {res}    0.5977
+{txt}{col 51}Adj R-squared{col 67}= {res}    0.5813
+{txt}{col 51}Within R-sq.{col 67}= {res}    0.0018
+{txt}{col 1}Number of clusters ({res}prov_id{txt}) {col 30}= {res}        29{txt}{col 51}Root MSE{col 67}= {res}    0.0550
+
+{txt}{ralign 78:(Std. Err. adjusted for {res:29} clusters in prov_id)}
+{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 14}{c |}{col 26}    Robust
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 5}drought {c |}{col 14}{res}{space 2} .0027718{col 26}{space 2} .0021225{col 37}{space 1}    1.31{col 46}{space 3}0.202{col 54}{space 4} -.001576{col 67}{space 3} .0071196
+{txt}{space 6}dr_x_h {c |}{col 14}{res}{space 2} .0037079{col 26}{space 2} .0023551{col 37}{space 1}    1.57{col 46}{space 3}0.127{col 54}{space 4}-.0011162{col 67}{space 3} .0085321
+{txt}{space 6}heat_z {c |}{col 14}{res}{space 2}-.0008885{col 26}{space 2} .0006774{col 37}{space 1}   -1.31{col 46}{space 3}0.200{col 54}{space 4}-.0022762{col 67}{space 3} .0004992
+{txt}heat_x_spe~L {c |}{col 14}{res}{space 2} .0007612{col 26}{space 2}  .000968{col 37}{space 1}    0.79{col 46}{space 3}0.438{col 54}{space 4}-.0012217{col 67}{space 3}  .002744
+{txt}{space 2}precip_sum {c |}{col 14}{res}{space 2}-.0000176{col 26}{space 2} 8.80e-06{col 37}{space 1}   -2.00{col 46}{space 3}0.055{col 54}{space 4}-.0000357{col 67}{space 3} 4.20e-07
+{txt}{space 7}_cons {c |}{col 14}{res}{space 2} .1166263{col 26}{space 2} .0009155{col 37}{space 1}  127.40{col 46}{space 3}0.000{col 54}{space 4} .1147511{col 67}{space 3} .1185015
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}
+{txt}Absorbed degrees of freedom:
+{res}{col 1}{text}{hline 13}{c TT}{hline 12}{hline 12}{hline 14}{hline 1}{c TRC}
+{col 1}{text} Absorbed FE{col 14}{c |} Categories{col 27} - Redundant{col 39}  = Num. Coefs{col 54}{c |}
+{res}{col 1}{text}{hline 13}{c +}{hline 12}{hline 12}{hline 14}{hline 1}{c RT}
+{col 1}{text}     prov_id{col 14}{c |}{space 1}       29{col 27}{space 1}       29{col 39}{result}{space 1}        0{col 53}{text}*{col 54}{c |}
+{res}{col 1}{text}          ym{col 14}{c |}{space 1}      242{col 27}{space 1}        1{col 39}{result}{space 1}      241{col 53}{text} {col 54}{c |}
+{res}{col 1}{text}{hline 13}{c BT}{hline 12}{hline 12}{hline 14}{hline 1}{c BRC}
+* = FE nested within cluster; treated as redundant for DoF computation
+{res}{txt}
+{com}. eststo A3
+{txt}
+{com}. 
+. reghdfe g_IndVA d1b d2b w1 w2 d1b_x_h d2b_x_h w1_x_h w2_x_h ///
+>     heat_z heat_x_spei_L precip_sum, absorb(prov_id ym) vce(cluster prov_id)
+{res}{txt}({browse "http://scorreia.com/research/hdfe.pdf":MWFE estimator} converged in 4 iterations)
+{res}
+{txt}HDFE Linear regression{col 51}Number of obs{col 67}= {res}     6,975
+{txt}Absorbing 2 HDFE groups{col 51}F({res}  11{txt},{res}     28{txt}){col 67}= {res}      5.18
+{txt}Statistics robust to heteroskedasticity{col 51}Prob > F{col 67}= {res}    0.0002
+{txt}{col 51}R-squared{col 67}= {res}    0.5982
+{txt}{col 51}Adj R-squared{col 67}= {res}    0.5813
+{txt}{col 51}Within R-sq.{col 67}= {res}    0.0029
+{txt}{col 1}Number of clusters ({res}prov_id{txt}) {col 30}= {res}        29{txt}{col 51}Root MSE{col 67}= {res}    0.0550
+
+{txt}{ralign 78:(Std. Err. adjusted for {res:29} clusters in prov_id)}
+{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 14}{c |}{col 26}    Robust
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}d1b {c |}{col 14}{res}{space 2} .0005217{col 26}{space 2} .0039963{col 37}{space 1}    0.13{col 46}{space 3}0.897{col 54}{space 4}-.0076645{col 67}{space 3} .0087078
+{txt}{space 9}d2b {c |}{col 14}{res}{space 2} .0029856{col 26}{space 2} .0023902{col 37}{space 1}    1.25{col 46}{space 3}0.222{col 54}{space 4}-.0019105{col 67}{space 3} .0078817
+{txt}{space 10}w1 {c |}{col 14}{res}{space 2}-.0005396{col 26}{space 2} .0028116{col 37}{space 1}   -0.19{col 46}{space 3}0.849{col 54}{space 4}-.0062989{col 67}{space 3} .0052197
+{txt}{space 10}w2 {c |}{col 14}{res}{space 2} .0093655{col 26}{space 2} .0046387{col 37}{space 1}    2.02{col 46}{space 3}0.053{col 54}{space 4}-.0001363{col 67}{space 3} .0188674
+{txt}{space 5}d1b_x_h {c |}{col 14}{res}{space 2} .0011386{col 26}{space 2} .0028332{col 37}{space 1}    0.40{col 46}{space 3}0.691{col 54}{space 4} -.004665{col 67}{space 3} .0069421
+{txt}{space 5}d2b_x_h {c |}{col 14}{res}{space 2} .0036211{col 26}{space 2} .0030713{col 37}{space 1}    1.18{col 46}{space 3}0.248{col 54}{space 4}-.0026701{col 67}{space 3} .0099124
+{txt}{space 6}w1_x_h {c |}{col 14}{res}{space 2}-.0038092{col 26}{space 2} .0021243{col 37}{space 1}   -1.79{col 46}{space 3}0.084{col 54}{space 4}-.0081606{col 67}{space 3} .0005423
+{txt}{space 6}w2_x_h {c |}{col 14}{res}{space 2}  .000292{col 26}{space 2} .0056694{col 37}{space 1}    0.05{col 46}{space 3}0.959{col 54}{space 4}-.0113212{col 67}{space 3} .0119052
+{txt}{space 6}heat_z {c |}{col 14}{res}{space 2}-.0009098{col 26}{space 2} .0007023{col 37}{space 1}   -1.30{col 46}{space 3}0.206{col 54}{space 4}-.0023484{col 67}{space 3} .0005287
+{txt}heat_x_spe~L {c |}{col 14}{res}{space 2} .0006806{col 26}{space 2} .0009636{col 37}{space 1}    0.71{col 46}{space 3}0.486{col 54}{space 4}-.0012932{col 67}{space 3} .0026544
+{txt}{space 2}precip_sum {c |}{col 14}{res}{space 2}-.0000213{col 26}{space 2} 8.47e-06{col 37}{space 1}   -2.51{col 46}{space 3}0.018{col 54}{space 4}-.0000387{col 67}{space 3}-3.95e-06
+{txt}{space 7}_cons {c |}{col 14}{res}{space 2} .1169778{col 26}{space 2} .0008729{col 37}{space 1}  134.02{col 46}{space 3}0.000{col 54}{space 4} .1151898{col 67}{space 3} .1187658
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}
+{txt}Absorbed degrees of freedom:
+{res}{col 1}{text}{hline 13}{c TT}{hline 12}{hline 12}{hline 14}{hline 1}{c TRC}
+{col 1}{text} Absorbed FE{col 14}{c |} Categories{col 27} - Redundant{col 39}  = Num. Coefs{col 54}{c |}
+{res}{col 1}{text}{hline 13}{c +}{hline 12}{hline 12}{hline 14}{hline 1}{c RT}
+{col 1}{text}     prov_id{col 14}{c |}{space 1}       29{col 27}{space 1}       29{col 39}{result}{space 1}        0{col 53}{text}*{col 54}{c |}
+{res}{col 1}{text}          ym{col 14}{c |}{space 1}      242{col 27}{space 1}        1{col 39}{result}{space 1}      241{col 53}{text} {col 54}{c |}
+{res}{col 1}{text}{hline 13}{c BT}{hline 12}{hline 12}{hline 14}{hline 1}{c BRC}
+* = FE nested within cluster; treated as redundant for DoF computation
+{res}{txt}
+{com}. eststo A4
+{txt}
+{com}. 
+. reghdfe g_IndVA SPEI1_L_d1 SPEI1_L_d2 SPEI1_L_w1 SPEI1_L_w2 ///
+>     SPEI1_L_d1_x_h SPEI1_L_d2_x_h SPEI1_L_w1_x_h SPEI1_L_w2_x_h ///
+>     heat_z heat_x_spei_L precip_sum, absorb(prov_id ym) vce(cluster prov_id)
+{res}{txt}({browse "http://scorreia.com/research/hdfe.pdf":MWFE estimator} converged in 4 iterations)
+{res}
+{txt}HDFE Linear regression{col 51}Number of obs{col 67}= {res}     6,975
+{txt}Absorbing 2 HDFE groups{col 51}F({res}  11{txt},{res}     28{txt}){col 67}= {res}      2.31
+{txt}Statistics robust to heteroskedasticity{col 51}Prob > F{col 67}= {res}    0.0360
+{txt}{col 51}R-squared{col 67}= {res}    0.5978
+{txt}{col 51}Adj R-squared{col 67}= {res}    0.5810
+{txt}{col 51}Within R-sq.{col 67}= {res}    0.0021
+{txt}{col 1}Number of clusters ({res}prov_id{txt}) {col 30}= {res}        29{txt}{col 51}Root MSE{col 67}= {res}    0.0550
+
+{txt}{ralign 78:(Std. Err. adjusted for {res:29} clusters in prov_id)}
+{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 14}{c |}{col 26}    Robust
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 2}SPEI1_L_d1 {c |}{col 14}{res}{space 2}-.0005461{col 26}{space 2} .0024464{col 37}{space 1}   -0.22{col 46}{space 3}0.825{col 54}{space 4}-.0055573{col 67}{space 3}  .004465
+{txt}{space 2}SPEI1_L_d2 {c |}{col 14}{res}{space 2} .0027818{col 26}{space 2} .0022598{col 37}{space 1}    1.23{col 46}{space 3}0.229{col 54}{space 4}-.0018473{col 67}{space 3} .0074109
+{txt}{space 2}SPEI1_L_w1 {c |}{col 14}{res}{space 2}-.0000512{col 26}{space 2} .0021003{col 37}{space 1}   -0.02{col 46}{space 3}0.981{col 54}{space 4}-.0043535{col 67}{space 3}  .004251
+{txt}{space 2}SPEI1_L_w2 {c |}{col 14}{res}{space 2} .0001589{col 26}{space 2} .0032168{col 37}{space 1}    0.05{col 46}{space 3}0.961{col 54}{space 4}-.0064304{col 67}{space 3} .0067483
+{txt}SPEI1_L_d1~h {c |}{col 14}{res}{space 2}  .004584{col 26}{space 2} .0024369{col 37}{space 1}    1.88{col 46}{space 3}0.070{col 54}{space 4}-.0004078{col 67}{space 3} .0095758
+{txt}SPEI1_L_d2~h {c |}{col 14}{res}{space 2}  .002479{col 26}{space 2} .0029435{col 37}{space 1}    0.84{col 46}{space 3}0.407{col 54}{space 4}-.0035505{col 67}{space 3} .0085085
+{txt}SPEI1_L_w1~h {c |}{col 14}{res}{space 2} .0009376{col 26}{space 2}  .001374{col 37}{space 1}    0.68{col 46}{space 3}0.501{col 54}{space 4} -.001877{col 67}{space 3} .0037522
+{txt}SPEI1_L_w2~h {c |}{col 14}{res}{space 2}  -.00392{col 26}{space 2} .0041993{col 37}{space 1}   -0.93{col 46}{space 3}0.359{col 54}{space 4}-.0125218{col 67}{space 3} .0046819
+{txt}{space 6}heat_z {c |}{col 14}{res}{space 2}-.0010653{col 26}{space 2}  .000755{col 37}{space 1}   -1.41{col 46}{space 3}0.169{col 54}{space 4}-.0026119{col 67}{space 3} .0004812
+{txt}heat_x_spe~L {c |}{col 14}{res}{space 2} .0007426{col 26}{space 2} .0009524{col 37}{space 1}    0.78{col 46}{space 3}0.442{col 54}{space 4}-.0012082{col 67}{space 3} .0026934
+{txt}{space 2}precip_sum {c |}{col 14}{res}{space 2}-.0000235{col 26}{space 2} .0000141{col 37}{space 1}   -1.67{col 46}{space 3}0.106{col 54}{space 4}-.0000524{col 67}{space 3} 5.37e-06
+{txt}{space 7}_cons {c |}{col 14}{res}{space 2} .1175696{col 26}{space 2} .0014121{col 37}{space 1}   83.26{col 46}{space 3}0.000{col 54}{space 4}  .114677{col 67}{space 3} .1204622
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}
+{txt}Absorbed degrees of freedom:
+{res}{col 1}{text}{hline 13}{c TT}{hline 12}{hline 12}{hline 14}{hline 1}{c TRC}
+{col 1}{text} Absorbed FE{col 14}{c |} Categories{col 27} - Redundant{col 39}  = Num. Coefs{col 54}{c |}
+{res}{col 1}{text}{hline 13}{c +}{hline 12}{hline 12}{hline 14}{hline 1}{c RT}
+{col 1}{text}     prov_id{col 14}{c |}{space 1}       29{col 27}{space 1}       29{col 39}{result}{space 1}        0{col 53}{text}*{col 54}{c |}
+{res}{col 1}{text}          ym{col 14}{c |}{space 1}      242{col 27}{space 1}        1{col 39}{result}{space 1}      241{col 53}{text} {col 54}{c |}
+{res}{col 1}{text}{hline 13}{c BT}{hline 12}{hline 12}{hline 14}{hline 1}{c BRC}
+* = FE nested within cluster; treated as redundant for DoF computation
+{res}{txt}
+{com}. eststo A5
+{txt}
+{com}. 
+. reghdfe g_IndVA SPEI6_L_d1 SPEI6_L_d2 SPEI6_L_w1 SPEI6_L_w2 ///
+>     SPEI6_L_d1_x_h SPEI6_L_d2_x_h SPEI6_L_w1_x_h SPEI6_L_w2_x_h ///
+>     heat_z heat_x_spei_L precip_sum, absorb(prov_id ym) vce(cluster prov_id)
+{res}{txt}({browse "http://scorreia.com/research/hdfe.pdf":MWFE estimator} converged in 4 iterations)
+{res}
+{txt}HDFE Linear regression{col 51}Number of obs{col 67}= {res}     6,975
+{txt}Absorbing 2 HDFE groups{col 51}F({res}  11{txt},{res}     28{txt}){col 67}= {res}      7.82
+{txt}Statistics robust to heteroskedasticity{col 51}Prob > F{col 67}= {res}    0.0000
+{txt}{col 51}R-squared{col 67}= {res}    0.5986
+{txt}{col 51}Adj R-squared{col 67}= {res}    0.5818
+{txt}{col 51}Within R-sq.{col 67}= {res}    0.0039
+{txt}{col 1}Number of clusters ({res}prov_id{txt}) {col 30}= {res}        29{txt}{col 51}Root MSE{col 67}= {res}    0.0550
+
+{txt}{ralign 78:(Std. Err. adjusted for {res:29} clusters in prov_id)}
+{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 14}{c |}{col 26}    Robust
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 2}SPEI6_L_d1 {c |}{col 14}{res}{space 2} .0037711{col 26}{space 2} .0029513{col 37}{space 1}    1.28{col 46}{space 3}0.212{col 54}{space 4}-.0022744{col 67}{space 3} .0098165
+{txt}{space 2}SPEI6_L_d2 {c |}{col 14}{res}{space 2} .0027093{col 26}{space 2} .0023419{col 37}{space 1}    1.16{col 46}{space 3}0.257{col 54}{space 4}-.0020877{col 67}{space 3} .0075064
+{txt}{space 2}SPEI6_L_w1 {c |}{col 14}{res}{space 2}-.0006435{col 26}{space 2} .0034882{col 37}{space 1}   -0.18{col 46}{space 3}0.855{col 54}{space 4}-.0077887{col 67}{space 3} .0065017
+{txt}{space 2}SPEI6_L_w2 {c |}{col 14}{res}{space 2} .0106693{col 26}{space 2} .0055013{col 37}{space 1}    1.94{col 46}{space 3}0.063{col 54}{space 4}-.0005997{col 67}{space 3} .0219383
+{txt}SPEI6_L_d1~h {c |}{col 14}{res}{space 2} .0015589{col 26}{space 2} .0020924{col 37}{space 1}    0.75{col 46}{space 3}0.462{col 54}{space 4}-.0027273{col 67}{space 3}  .005845
+{txt}SPEI6_L_d2~h {c |}{col 14}{res}{space 2} .0034314{col 26}{space 2} .0020302{col 37}{space 1}    1.69{col 46}{space 3}0.102{col 54}{space 4}-.0007274{col 67}{space 3} .0075901
+{txt}SPEI6_L_w1~h {c |}{col 14}{res}{space 2}-.0088049{col 26}{space 2} .0025632{col 37}{space 1}   -3.44{col 46}{space 3}0.002{col 54}{space 4}-.0140553{col 67}{space 3}-.0035545
+{txt}SPEI6_L_w2~h {c |}{col 14}{res}{space 2} -.010515{col 26}{space 2} .0047699{col 37}{space 1}   -2.20{col 46}{space 3}0.036{col 54}{space 4}-.0202857{col 67}{space 3}-.0007443
+{txt}{space 6}heat_z {c |}{col 14}{res}{space 2}-.0007675{col 26}{space 2} .0007224{col 37}{space 1}   -1.06{col 46}{space 3}0.297{col 54}{space 4}-.0022473{col 67}{space 3} .0007124
+{txt}heat_x_spe~L {c |}{col 14}{res}{space 2} .0008527{col 26}{space 2} .0009649{col 37}{space 1}    0.88{col 46}{space 3}0.384{col 54}{space 4}-.0011238{col 67}{space 3} .0028292
+{txt}{space 2}precip_sum {c |}{col 14}{res}{space 2} -.000018{col 26}{space 2}  .000011{col 37}{space 1}   -1.64{col 46}{space 3}0.113{col 54}{space 4}-.0000405{col 67}{space 3} 4.51e-06
+{txt}{space 7}_cons {c |}{col 14}{res}{space 2} .1164554{col 26}{space 2} .0012011{col 37}{space 1}   96.96{col 46}{space 3}0.000{col 54}{space 4}  .113995{col 67}{space 3} .1189157
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}
+{txt}Absorbed degrees of freedom:
+{res}{col 1}{text}{hline 13}{c TT}{hline 12}{hline 12}{hline 14}{hline 1}{c TRC}
+{col 1}{text} Absorbed FE{col 14}{c |} Categories{col 27} - Redundant{col 39}  = Num. Coefs{col 54}{c |}
+{res}{col 1}{text}{hline 13}{c +}{hline 12}{hline 12}{hline 14}{hline 1}{c RT}
+{col 1}{text}     prov_id{col 14}{c |}{space 1}       29{col 27}{space 1}       29{col 39}{result}{space 1}        0{col 53}{text}*{col 54}{c |}
+{res}{col 1}{text}          ym{col 14}{c |}{space 1}      242{col 27}{space 1}        1{col 39}{result}{space 1}      241{col 53}{text} {col 54}{c |}
+{res}{col 1}{text}{hline 13}{c BT}{hline 12}{hline 12}{hline 14}{hline 1}{c BRC}
+* = FE nested within cluster; treated as redundant for DoF computation
+{res}{txt}
+{com}. eststo A6
+{txt}
+{com}. 
+. * Total category effects one SD above mean hydro share
+. estimates restore A2
+{txt}(results {stata estimates replay A2:A2} are active now)
+
+{com}. di _n "=== Spec A: total effects at HydroShare(z) = 1 ==="
+{res}
+=== Spec A: total effects at HydroShare(z) = 1 ===
+{txt}
+{com}. lincom d1 + d1_x_h
+
+{p 0 7}{space 1}{text:( 1)}{space 1} {res}d1 + d1_x_h = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .0037323{col 26}{space 2} .0023408{col 37}{space 1}    1.59{col 46}{space 3}0.122{col 54}{space 4}-.0010625{col 67}{space 3} .0085272
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{com}. lincom d2 + d2_x_h
+
+{p 0 7}{space 1}{text:( 1)}{space 1} {res}d2 + d2_x_h = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .0075455{col 26}{space 2} .0054476{col 37}{space 1}    1.39{col 46}{space 3}0.177{col 54}{space 4}-.0036134{col 67}{space 3} .0187043
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{com}. lincom w1 + w1_x_h
+
+{p 0 7}{space 1}{text:( 1)}{space 1} {res}w1 + w1_x_h = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}-.0044488{col 26}{space 2} .0011787{col 37}{space 1}   -3.77{col 46}{space 3}0.001{col 54}{space 4}-.0068633{col 67}{space 3}-.0020344
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{com}. lincom w2 + w2_x_h
+
+{p 0 7}{space 1}{text:( 1)}{space 1} {res}w2 + w2_x_h = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .0094639{col 26}{space 2} .0081519{col 37}{space 1}    1.16{col 46}{space 3}0.255{col 54}{space 4}-.0072346{col 67}{space 3} .0261624
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{com}. estimates restore A3
+{txt}(results {stata estimates replay A3:A3} are active now)
+
+{com}. di _n "=== Collapsed drought: total effect at HydroShare(z) = 1 ==="
+{res}
+=== Collapsed drought: total effect at HydroShare(z) = 1 ===
+{txt}
+{com}. lincom drought + dr_x_h
+
+{p 0 7}{space 1}{text:( 1)}{space 1} {res}drought + dr_x_h = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .0064798{col 26}{space 2} .0034957{col 37}{space 1}    1.85{col 46}{space 3}0.074{col 54}{space 4}-.0006808{col 67}{space 3} .0136403
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{com}. 
+. esttab A1 A2 A3 A4 A5 A6 using "output/tables/spei_long_specA.tex", replace ///
+>     booktabs label b(4) se(4) star(* 0.10 ** 0.05 *** 0.01) ///
+>     keep(d1 d2 w1 w2 d1_x_h d2_x_h w1_x_h w2_x_h drought dr_x_h ///
+>          d1b d2b d1b_x_h d2b_x_h ///
+>          SPEI1_L_d1 SPEI1_L_d2 SPEI1_L_w1 SPEI1_L_w2 ///
+>          SPEI1_L_d1_x_h SPEI1_L_d2_x_h SPEI1_L_w1_x_h SPEI1_L_w2_x_h ///
+>          SPEI6_L_d1 SPEI6_L_d2 SPEI6_L_w1 SPEI6_L_w2 ///
+>          SPEI6_L_d1_x_h SPEI6_L_d2_x_h SPEI6_L_w1_x_h SPEI6_L_w2_x_h) ///
+>     order(d1 d2 w1 w2 drought d1b d2b ///
+>           SPEI1_L_d1 SPEI1_L_d2 SPEI1_L_w1 SPEI1_L_w2 ///
+>           SPEI6_L_d1 SPEI6_L_d2 SPEI6_L_w1 SPEI6_L_w2 ///
+>           d1_x_h d2_x_h w1_x_h w2_x_h dr_x_h d1b_x_h d2b_x_h ///
+>           SPEI1_L_d1_x_h SPEI1_L_d2_x_h SPEI1_L_w1_x_h SPEI1_L_w2_x_h ///
+>           SPEI6_L_d1_x_h SPEI6_L_d2_x_h SPEI6_L_w1_x_h SPEI6_L_w2_x_h) ///
+>     mtitles("No int." "Cutoffs -1.5/-1" "Collapsed" "Cutoffs -2/-1" ///
+>             "SPEI1" "SPEI6") ///
+>     stats(N r2_a, fmt(%9.0fc %9.3f) labels("Observations" "Adj. R-squared")) ///
+>     nonotes ///
+>     addnotes("SEs in parentheses, clustered at province level (29 clusters)." ///
+>              "DV: g_IndVA = NBS published single-month real YoY growth (fraction)." ///
+>              "SPEI*_L: long-baseline (1940-2025) log-logistic SPEI, raw standardized units." ///
+>              "Dummies use the raw index; omitted category is -1 < SPEI < 1." ///
+>              "HydroShare is standardised within the estimation sample." ///
+>              "FE: province + year-month. Sample: Mar-Dec 2002-2026." ///
+>              "* p<0.10, ** p<0.05, *** p<0.01.")
+{res}{txt}(output written to {browse  `"output/tables/spei_long_specA.tex"'})
+
+{com}. 
+. * ===========================================================================
+. * (c) Specification B: Eyer-Wichman slope-by-bin (six bins) and linear spline
+. *     Knots: -1.5, -1, 0, 1, 1.5. Each beta is the effect of a one-unit SPEI
+. *     change within that range.
+. * ===========================================================================
+. foreach v in SPEI1_L SPEI3_L SPEI6_L {c -(}
+{txt}  2{com}.     gen byte `v'_e1 = (`v' <= -1.5) if !missing(`v')
+{txt}  3{com}.     gen byte `v'_e2 = (`v' > -1.5 & `v' <= -1) if !missing(`v')
+{txt}  4{com}.     gen byte `v'_e3 = (`v' > -1 & `v' <= 0) if !missing(`v')
+{txt}  5{com}.     gen byte `v'_e4 = (`v' > 0 & `v' <= 1) if !missing(`v')
+{txt}  6{com}.     gen byte `v'_e5 = (`v' > 1 & `v' <= 1.5) if !missing(`v')
+{txt}  7{com}.     gen byte `v'_e6 = (`v' > 1.5) if !missing(`v')
+{txt}  8{com}.     egen byte `v'_ncat = rowtotal(`v'_e1 `v'_e2 `v'_e3 `v'_e4 `v'_e5 `v'_e6)
+{txt}  9{com}.     assert `v'_ncat == 1 if !missing(`v')
+{txt} 10{com}.     forvalues j = 1/6 {c -(}
+{txt} 11{com}.         gen `v'_x`j' = `v' * `v'_e`j'
+{txt} 12{com}.         gen `v'_x`j'_h = `v' * `v'_e`j' * HydroShare_z
+{txt} 13{com}.     {c )-}
+{txt} 14{com}. {c )-}
+{txt}
+{com}. 
+. label var SPEI3_L_x1 "SPEI3 $\times$ 1(SPEI3 $\leq -1.5$)"
+{txt}
+{com}. label var SPEI3_L_x2 "SPEI3 $\times$ 1($-1.5 <$ SPEI3 $\leq -1$)"
+{txt}
+{com}. label var SPEI3_L_x3 "SPEI3 $\times$ 1($-1 <$ SPEI3 $\leq 0$)"
+{txt}
+{com}. label var SPEI3_L_x4 "SPEI3 $\times$ 1($0 <$ SPEI3 $\leq 1$)"
+{txt}
+{com}. label var SPEI3_L_x5 "SPEI3 $\times$ 1($1 <$ SPEI3 $\leq 1.5$)"
+{txt}
+{com}. label var SPEI3_L_x6 "SPEI3 $\times$ 1(SPEI3 $> 1.5$)"
+{txt}
+{com}. label var SPEI3_L_x1_h "SPEI3 $\times$ 1($\leq -1.5$) $\times$ Hydro"
+{txt}
+{com}. label var SPEI3_L_x2_h "SPEI3 $\times$ 1($-1.5,-1$] $\times$ Hydro"
+{txt}
+{com}. label var SPEI3_L_x3_h "SPEI3 $\times$ 1($-1,0$] $\times$ Hydro"
+{txt}
+{com}. label var SPEI3_L_x4_h "SPEI3 $\times$ 1($0,1$] $\times$ Hydro"
+{txt}
+{com}. label var SPEI3_L_x5_h "SPEI3 $\times$ 1($1,1.5$] $\times$ Hydro"
+{txt}
+{com}. label var SPEI3_L_x6_h "SPEI3 $\times$ 1($> 1.5$) $\times$ Hydro"
+{txt}
+{com}. 
+. foreach v in SPEI1_L SPEI6_L {c -(}
+{txt}  2{com}.     local nm : subinstr local v "_L" "", all
+{txt}  3{com}.     label var `v'_x1 "`nm' $\times$ 1(`nm' $\leq -1.5$)"
+{txt}  4{com}.     label var `v'_x2 "`nm' $\times$ 1($-1.5 <$ `nm' $\leq -1$)"
+{txt}  5{com}.     label var `v'_x3 "`nm' $\times$ 1($-1 <$ `nm' $\leq 0$)"
+{txt}  6{com}.     label var `v'_x4 "`nm' $\times$ 1($0 <$ `nm' $\leq 1$)"
+{txt}  7{com}.     label var `v'_x5 "`nm' $\times$ 1($1 <$ `nm' $\leq 1.5$)"
+{txt}  8{com}.     label var `v'_x6 "`nm' $\times$ 1(`nm' $> 1.5$)"
+{txt}  9{com}.     label var `v'_x1_h "`nm' $\times$ 1($\leq -1.5$) $\times$ Hydro"
+{txt} 10{com}.     label var `v'_x2_h "`nm' $\times$ 1($-1.5,-1$] $\times$ Hydro"
+{txt} 11{com}.     label var `v'_x3_h "`nm' $\times$ 1($-1,0$] $\times$ Hydro"
+{txt} 12{com}.     label var `v'_x4_h "`nm' $\times$ 1($0,1$] $\times$ Hydro"
+{txt} 13{com}.     label var `v'_x5_h "`nm' $\times$ 1($1,1.5$] $\times$ Hydro"
+{txt} 14{com}.     label var `v'_x6_h "`nm' $\times$ 1($> 1.5$) $\times$ Hydro"
+{txt} 15{com}. {c )-}
+{txt}
+{com}. 
+. eststo clear
+{txt}
+{com}. 
+. reghdfe g_IndVA SPEI3_L_x1 SPEI3_L_x2 SPEI3_L_x3 SPEI3_L_x4 SPEI3_L_x5 ///
+>     SPEI3_L_x6 heat_z heat_x_spei_L precip_sum, absorb(prov_id ym) vce(cluster prov_id)
+{res}{txt}({browse "http://scorreia.com/research/hdfe.pdf":MWFE estimator} converged in 4 iterations)
+{res}
+{txt}HDFE Linear regression{col 51}Number of obs{col 67}= {res}     6,975
+{txt}Absorbing 2 HDFE groups{col 51}F({res}   9{txt},{res}     28{txt}){col 67}= {res}      2.58
+{txt}Statistics robust to heteroskedasticity{col 51}Prob > F{col 67}= {res}    0.0264
+{txt}{col 51}R-squared{col 67}= {res}    0.5978
+{txt}{col 51}Adj R-squared{col 67}= {res}    0.5811
+{txt}{col 51}Within R-sq.{col 67}= {res}    0.0020
+{txt}{col 1}Number of clusters ({res}prov_id{txt}) {col 30}= {res}        29{txt}{col 51}Root MSE{col 67}= {res}    0.0550
+
+{txt}{ralign 78:(Std. Err. adjusted for {res:29} clusters in prov_id)}
+{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 14}{c |}{col 26}    Robust
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 2}SPEI3_L_x1 {c |}{col 14}{res}{space 2}-.0018048{col 26}{space 2} .0014298{col 37}{space 1}   -1.26{col 46}{space 3}0.217{col 54}{space 4}-.0047335{col 67}{space 3} .0011239
+{txt}{space 2}SPEI3_L_x2 {c |}{col 14}{res}{space 2}-.0029876{col 26}{space 2} .0024515{col 37}{space 1}   -1.22{col 46}{space 3}0.233{col 54}{space 4}-.0080093{col 67}{space 3} .0020342
+{txt}{space 2}SPEI3_L_x3 {c |}{col 14}{res}{space 2}-.0033181{col 26}{space 2} .0030638{col 37}{space 1}   -1.08{col 46}{space 3}0.288{col 54}{space 4}-.0095939{col 67}{space 3} .0029578
+{txt}{space 2}SPEI3_L_x4 {c |}{col 14}{res}{space 2} .0050046{col 26}{space 2} .0031463{col 37}{space 1}    1.59{col 46}{space 3}0.123{col 54}{space 4}-.0014402{col 67}{space 3} .0114495
+{txt}{space 2}SPEI3_L_x5 {c |}{col 14}{res}{space 2} .0001351{col 26}{space 2} .0031058{col 37}{space 1}    0.04{col 46}{space 3}0.966{col 54}{space 4}-.0062268{col 67}{space 3}  .006497
+{txt}{space 2}SPEI3_L_x6 {c |}{col 14}{res}{space 2} .0065344{col 26}{space 2} .0032504{col 37}{space 1}    2.01{col 46}{space 3}0.054{col 54}{space 4}-.0001238{col 67}{space 3} .0131926
+{txt}{space 6}heat_z {c |}{col 14}{res}{space 2} -.000946{col 26}{space 2} .0006752{col 37}{space 1}   -1.40{col 46}{space 3}0.172{col 54}{space 4} -.002329{col 67}{space 3}  .000437
+{txt}heat_x_spe~L {c |}{col 14}{res}{space 2}  .000884{col 26}{space 2} .0009613{col 37}{space 1}    0.92{col 46}{space 3}0.366{col 54}{space 4}-.0010852{col 67}{space 3} .0028532
+{txt}{space 2}precip_sum {c |}{col 14}{res}{space 2}-.0000243{col 26}{space 2} .0000101{col 37}{space 1}   -2.41{col 46}{space 3}0.023{col 54}{space 4} -.000045{col 67}{space 3}-3.67e-06
+{txt}{space 7}_cons {c |}{col 14}{res}{space 2} .1153862{col 26}{space 2} .0018753{col 37}{space 1}   61.53{col 46}{space 3}0.000{col 54}{space 4} .1115448{col 67}{space 3} .1192276
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}
+{txt}Absorbed degrees of freedom:
+{res}{col 1}{text}{hline 13}{c TT}{hline 12}{hline 12}{hline 14}{hline 1}{c TRC}
+{col 1}{text} Absorbed FE{col 14}{c |} Categories{col 27} - Redundant{col 39}  = Num. Coefs{col 54}{c |}
+{res}{col 1}{text}{hline 13}{c +}{hline 12}{hline 12}{hline 14}{hline 1}{c RT}
+{col 1}{text}     prov_id{col 14}{c |}{space 1}       29{col 27}{space 1}       29{col 39}{result}{space 1}        0{col 53}{text}*{col 54}{c |}
+{res}{col 1}{text}          ym{col 14}{c |}{space 1}      242{col 27}{space 1}        1{col 39}{result}{space 1}      241{col 53}{text} {col 54}{c |}
+{res}{col 1}{text}{hline 13}{c BT}{hline 12}{hline 12}{hline 14}{hline 1}{c BRC}
+* = FE nested within cluster; treated as redundant for DoF computation
+{res}{txt}
+{com}. eststo B1
+{txt}
+{com}. 
+. reghdfe g_IndVA SPEI3_L_x1 SPEI3_L_x2 SPEI3_L_x3 SPEI3_L_x4 SPEI3_L_x5 ///
+>     SPEI3_L_x6 SPEI3_L_x1_h SPEI3_L_x2_h SPEI3_L_x3_h SPEI3_L_x4_h ///
+>     SPEI3_L_x5_h SPEI3_L_x6_h heat_z heat_x_spei_L precip_sum, ///
+>     absorb(prov_id ym) vce(cluster prov_id)
+{res}{txt}({browse "http://scorreia.com/research/hdfe.pdf":MWFE estimator} converged in 4 iterations)
+{res}
+{txt}HDFE Linear regression{col 51}Number of obs{col 67}= {res}     6,975
+{txt}Absorbing 2 HDFE groups{col 51}F({res}  15{txt},{res}     28{txt}){col 67}= {res}      6.77
+{txt}Statistics robust to heteroskedasticity{col 51}Prob > F{col 67}= {res}    0.0000
+{txt}{col 51}R-squared{col 67}= {res}    0.5985
+{txt}{col 51}Adj R-squared{col 67}= {res}    0.5814
+{txt}{col 51}Within R-sq.{col 67}= {res}    0.0037
+{txt}{col 1}Number of clusters ({res}prov_id{txt}) {col 30}= {res}        29{txt}{col 51}Root MSE{col 67}= {res}    0.0550
+
+{txt}{ralign 78:(Std. Err. adjusted for {res:29} clusters in prov_id)}
+{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 14}{c |}{col 26}    Robust
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 2}SPEI3_L_x1 {c |}{col 14}{res}{space 2}-.0016959{col 26}{space 2} .0014028{col 37}{space 1}   -1.21{col 46}{space 3}0.237{col 54}{space 4}-.0045694{col 67}{space 3} .0011775
+{txt}{space 2}SPEI3_L_x2 {c |}{col 14}{res}{space 2}-.0029179{col 26}{space 2} .0023477{col 37}{space 1}   -1.24{col 46}{space 3}0.224{col 54}{space 4}-.0077269{col 67}{space 3}  .001891
+{txt}{space 2}SPEI3_L_x3 {c |}{col 14}{res}{space 2}-.0032738{col 26}{space 2} .0030473{col 37}{space 1}   -1.07{col 46}{space 3}0.292{col 54}{space 4}-.0095159{col 67}{space 3} .0029683
+{txt}{space 2}SPEI3_L_x4 {c |}{col 14}{res}{space 2} .0049965{col 26}{space 2} .0032195{col 37}{space 1}    1.55{col 46}{space 3}0.132{col 54}{space 4}-.0015984{col 67}{space 3} .0115914
+{txt}{space 2}SPEI3_L_x5 {c |}{col 14}{res}{space 2} .0010417{col 26}{space 2} .0033004{col 37}{space 1}    0.32{col 46}{space 3}0.755{col 54}{space 4}-.0057189{col 67}{space 3} .0078022
+{txt}{space 2}SPEI3_L_x6 {c |}{col 14}{res}{space 2} .0066719{col 26}{space 2}  .003357{col 37}{space 1}    1.99{col 46}{space 3}0.057{col 54}{space 4}-.0002045{col 67}{space 3} .0135484
+{txt}SPEI3_L_x1_h {c |}{col 14}{res}{space 2}-.0012561{col 26}{space 2} .0011567{col 37}{space 1}   -1.09{col 46}{space 3}0.287{col 54}{space 4}-.0036256{col 67}{space 3} .0011134
+{txt}SPEI3_L_x2_h {c |}{col 14}{res}{space 2}-.0057561{col 26}{space 2} .0044665{col 37}{space 1}   -1.29{col 46}{space 3}0.208{col 54}{space 4}-.0149053{col 67}{space 3} .0033931
+{txt}SPEI3_L_x3_h {c |}{col 14}{res}{space 2}-.0032902{col 26}{space 2} .0031019{col 37}{space 1}   -1.06{col 46}{space 3}0.298{col 54}{space 4}-.0096442{col 67}{space 3} .0030638
+{txt}SPEI3_L_x4_h {c |}{col 14}{res}{space 2} .0024341{col 26}{space 2} .0039523{col 37}{space 1}    0.62{col 46}{space 3}0.543{col 54}{space 4}-.0056618{col 67}{space 3}   .01053
+{txt}SPEI3_L_x5_h {c |}{col 14}{res}{space 2}-.0018878{col 26}{space 2} .0026103{col 37}{space 1}   -0.72{col 46}{space 3}0.476{col 54}{space 4}-.0072347{col 67}{space 3} .0034591
+{txt}SPEI3_L_x6_h {c |}{col 14}{res}{space 2} .0011905{col 26}{space 2} .0043742{col 37}{space 1}    0.27{col 46}{space 3}0.787{col 54}{space 4}-.0077696{col 67}{space 3} .0101506
+{txt}{space 6}heat_z {c |}{col 14}{res}{space 2}-.0010382{col 26}{space 2} .0006977{col 37}{space 1}   -1.49{col 46}{space 3}0.148{col 54}{space 4}-.0024674{col 67}{space 3}  .000391
+{txt}heat_x_spe~L {c |}{col 14}{res}{space 2} .0006947{col 26}{space 2} .0010006{col 37}{space 1}    0.69{col 46}{space 3}0.493{col 54}{space 4} -.001355{col 67}{space 3} .0027444
+{txt}{space 2}precip_sum {c |}{col 14}{res}{space 2}-.0000258{col 26}{space 2} 9.76e-06{col 37}{space 1}   -2.65{col 46}{space 3}0.013{col 54}{space 4}-.0000458{col 67}{space 3}-5.85e-06
+{txt}{space 7}_cons {c |}{col 14}{res}{space 2} .1156115{col 26}{space 2} .0018481{col 37}{space 1}   62.56{col 46}{space 3}0.000{col 54}{space 4} .1118259{col 67}{space 3} .1193971
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}
+{txt}Absorbed degrees of freedom:
+{res}{col 1}{text}{hline 13}{c TT}{hline 12}{hline 12}{hline 14}{hline 1}{c TRC}
+{col 1}{text} Absorbed FE{col 14}{c |} Categories{col 27} - Redundant{col 39}  = Num. Coefs{col 54}{c |}
+{res}{col 1}{text}{hline 13}{c +}{hline 12}{hline 12}{hline 14}{hline 1}{c RT}
+{col 1}{text}     prov_id{col 14}{c |}{space 1}       29{col 27}{space 1}       29{col 39}{result}{space 1}        0{col 53}{text}*{col 54}{c |}
+{res}{col 1}{text}          ym{col 14}{c |}{space 1}      242{col 27}{space 1}        1{col 39}{result}{space 1}      241{col 53}{text} {col 54}{c |}
+{res}{col 1}{text}{hline 13}{c BT}{hline 12}{hline 12}{hline 14}{hline 1}{c BRC}
+* = FE nested within cluster; treated as redundant for DoF computation
+{res}{txt}
+{com}. eststo B2
+{txt}
+{com}. 
+. reghdfe g_IndVA SPEI1_L_x1 SPEI1_L_x2 SPEI1_L_x3 SPEI1_L_x4 SPEI1_L_x5 ///
+>     SPEI1_L_x6 heat_z heat_x_spei_L precip_sum, absorb(prov_id ym) vce(cluster prov_id)
+{res}{txt}({browse "http://scorreia.com/research/hdfe.pdf":MWFE estimator} converged in 4 iterations)
+{res}
+{txt}HDFE Linear regression{col 51}Number of obs{col 67}= {res}     6,975
+{txt}Absorbing 2 HDFE groups{col 51}F({res}   9{txt},{res}     28{txt}){col 67}= {res}      0.94
+{txt}Statistics robust to heteroskedasticity{col 51}Prob > F{col 67}= {res}    0.5095
+{txt}{col 51}R-squared{col 67}= {res}    0.5975
+{txt}{col 51}Adj R-squared{col 67}= {res}    0.5808
+{txt}{col 51}Within R-sq.{col 67}= {res}    0.0013
+{txt}{col 1}Number of clusters ({res}prov_id{txt}) {col 30}= {res}        29{txt}{col 51}Root MSE{col 67}= {res}    0.0550
+
+{txt}{ralign 78:(Std. Err. adjusted for {res:29} clusters in prov_id)}
+{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 14}{c |}{col 26}    Robust
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 2}SPEI1_L_x1 {c |}{col 14}{res}{space 2} .0004336{col 26}{space 2} .0010853{col 37}{space 1}    0.40{col 46}{space 3}0.693{col 54}{space 4}-.0017895{col 67}{space 3} .0026567
+{txt}{space 2}SPEI1_L_x2 {c |}{col 14}{res}{space 2}-.0026333{col 26}{space 2} .0022122{col 37}{space 1}   -1.19{col 46}{space 3}0.244{col 54}{space 4}-.0071647{col 67}{space 3} .0018981
+{txt}{space 2}SPEI1_L_x3 {c |}{col 14}{res}{space 2}-.0028621{col 26}{space 2} .0024234{col 37}{space 1}   -1.18{col 46}{space 3}0.248{col 54}{space 4}-.0078262{col 67}{space 3}  .002102
+{txt}{space 2}SPEI1_L_x4 {c |}{col 14}{res}{space 2} .0041826{col 26}{space 2} .0030686{col 37}{space 1}    1.36{col 46}{space 3}0.184{col 54}{space 4}-.0021032{col 67}{space 3} .0104684
+{txt}{space 2}SPEI1_L_x5 {c |}{col 14}{res}{space 2} .0030017{col 26}{space 2} .0022038{col 37}{space 1}    1.36{col 46}{space 3}0.184{col 54}{space 4}-.0015126{col 67}{space 3}  .007516
+{txt}{space 2}SPEI1_L_x6 {c |}{col 14}{res}{space 2} .0029585{col 26}{space 2} .0023968{col 37}{space 1}    1.23{col 46}{space 3}0.227{col 54}{space 4} -.001951{col 67}{space 3} .0078681
+{txt}{space 6}heat_z {c |}{col 14}{res}{space 2}-.0008713{col 26}{space 2} .0006968{col 37}{space 1}   -1.25{col 46}{space 3}0.222{col 54}{space 4}-.0022987{col 67}{space 3} .0005561
+{txt}heat_x_spe~L {c |}{col 14}{res}{space 2} .0008558{col 26}{space 2} .0009241{col 37}{space 1}    0.93{col 46}{space 3}0.362{col 54}{space 4}-.0010371{col 67}{space 3} .0027488
+{txt}{space 2}precip_sum {c |}{col 14}{res}{space 2}-.0000399{col 26}{space 2} .0000222{col 37}{space 1}   -1.80{col 46}{space 3}0.083{col 54}{space 4}-.0000854{col 67}{space 3} 5.61e-06
+{txt}{space 7}_cons {c |}{col 14}{res}{space 2} .1174682{col 26}{space 2} .0020596{col 37}{space 1}   57.04{col 46}{space 3}0.000{col 54}{space 4} .1132494{col 67}{space 3}  .121687
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}
+{txt}Absorbed degrees of freedom:
+{res}{col 1}{text}{hline 13}{c TT}{hline 12}{hline 12}{hline 14}{hline 1}{c TRC}
+{col 1}{text} Absorbed FE{col 14}{c |} Categories{col 27} - Redundant{col 39}  = Num. Coefs{col 54}{c |}
+{res}{col 1}{text}{hline 13}{c +}{hline 12}{hline 12}{hline 14}{hline 1}{c RT}
+{col 1}{text}     prov_id{col 14}{c |}{space 1}       29{col 27}{space 1}       29{col 39}{result}{space 1}        0{col 53}{text}*{col 54}{c |}
+{res}{col 1}{text}          ym{col 14}{c |}{space 1}      242{col 27}{space 1}        1{col 39}{result}{space 1}      241{col 53}{text} {col 54}{c |}
+{res}{col 1}{text}{hline 13}{c BT}{hline 12}{hline 12}{hline 14}{hline 1}{c BRC}
+* = FE nested within cluster; treated as redundant for DoF computation
+{res}{txt}
+{com}. eststo B3
+{txt}
+{com}. 
+. reghdfe g_IndVA SPEI1_L_x1 SPEI1_L_x2 SPEI1_L_x3 SPEI1_L_x4 SPEI1_L_x5 ///
+>     SPEI1_L_x6 SPEI1_L_x1_h SPEI1_L_x2_h SPEI1_L_x3_h SPEI1_L_x4_h ///
+>     SPEI1_L_x5_h SPEI1_L_x6_h heat_z heat_x_spei_L precip_sum, ///
+>     absorb(prov_id ym) vce(cluster prov_id)
+{res}{txt}({browse "http://scorreia.com/research/hdfe.pdf":MWFE estimator} converged in 4 iterations)
+{res}
+{txt}HDFE Linear regression{col 51}Number of obs{col 67}= {res}     6,975
+{txt}Absorbing 2 HDFE groups{col 51}F({res}  15{txt},{res}     28{txt}){col 67}= {res}      1.83
+{txt}Statistics robust to heteroskedasticity{col 51}Prob > F{col 67}= {res}    0.0817
+{txt}{col 51}R-squared{col 67}= {res}    0.5979
+{txt}{col 51}Adj R-squared{col 67}= {res}    0.5809
+{txt}{col 51}Within R-sq.{col 67}= {res}    0.0024
+{txt}{col 1}Number of clusters ({res}prov_id{txt}) {col 30}= {res}        29{txt}{col 51}Root MSE{col 67}= {res}    0.0550
+
+{txt}{ralign 78:(Std. Err. adjusted for {res:29} clusters in prov_id)}
+{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 14}{c |}{col 26}    Robust
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 2}SPEI1_L_x1 {c |}{col 14}{res}{space 2}-5.64e-06{col 26}{space 2} .0012442{col 37}{space 1}   -0.00{col 46}{space 3}0.996{col 54}{space 4}-.0025543{col 67}{space 3}  .002543
+{txt}{space 2}SPEI1_L_x2 {c |}{col 14}{res}{space 2}-.0027444{col 26}{space 2} .0023411{col 37}{space 1}   -1.17{col 46}{space 3}0.251{col 54}{space 4}  -.00754{col 67}{space 3} .0020513
+{txt}{space 2}SPEI1_L_x3 {c |}{col 14}{res}{space 2}-.0031114{col 26}{space 2} .0024448{col 37}{space 1}   -1.27{col 46}{space 3}0.214{col 54}{space 4}-.0081194{col 67}{space 3} .0018965
+{txt}{space 2}SPEI1_L_x4 {c |}{col 14}{res}{space 2} .0042862{col 26}{space 2} .0029415{col 37}{space 1}    1.46{col 46}{space 3}0.156{col 54}{space 4}-.0017392{col 67}{space 3} .0103115
+{txt}{space 2}SPEI1_L_x5 {c |}{col 14}{res}{space 2} .0030339{col 26}{space 2} .0021992{col 37}{space 1}    1.38{col 46}{space 3}0.179{col 54}{space 4} -.001471{col 67}{space 3} .0075387
+{txt}{space 2}SPEI1_L_x6 {c |}{col 14}{res}{space 2} .0031411{col 26}{space 2} .0024133{col 37}{space 1}    1.30{col 46}{space 3}0.204{col 54}{space 4}-.0018024{col 67}{space 3} .0080846
+{txt}SPEI1_L_x1_h {c |}{col 14}{res}{space 2} -.002224{col 26}{space 2}  .001554{col 37}{space 1}   -1.43{col 46}{space 3}0.163{col 54}{space 4}-.0054072{col 67}{space 3} .0009592
+{txt}SPEI1_L_x2_h {c |}{col 14}{res}{space 2}-.0021519{col 26}{space 2} .0030612{col 37}{space 1}   -0.70{col 46}{space 3}0.488{col 54}{space 4}-.0084225{col 67}{space 3} .0041186
+{txt}SPEI1_L_x3_h {c |}{col 14}{res}{space 2} .0005469{col 26}{space 2} .0025708{col 37}{space 1}    0.21{col 46}{space 3}0.833{col 54}{space 4}-.0047191{col 67}{space 3}  .005813
+{txt}SPEI1_L_x4_h {c |}{col 14}{res}{space 2} .0030892{col 26}{space 2} .0034113{col 37}{space 1}    0.91{col 46}{space 3}0.373{col 54}{space 4}-.0038986{col 67}{space 3} .0100769
+{txt}SPEI1_L_x5_h {c |}{col 14}{res}{space 2} .0013634{col 26}{space 2} .0016679{col 37}{space 1}    0.82{col 46}{space 3}0.421{col 54}{space 4}-.0020531{col 67}{space 3} .0047798
+{txt}SPEI1_L_x6_h {c |}{col 14}{res}{space 2}-.0019041{col 26}{space 2} .0028044{col 37}{space 1}   -0.68{col 46}{space 3}0.503{col 54}{space 4}-.0076487{col 67}{space 3} .0038405
+{txt}{space 6}heat_z {c |}{col 14}{res}{space 2}-.0008862{col 26}{space 2}  .000716{col 37}{space 1}   -1.24{col 46}{space 3}0.226{col 54}{space 4}-.0023528{col 67}{space 3} .0005804
+{txt}heat_x_spe~L {c |}{col 14}{res}{space 2} .0007905{col 26}{space 2} .0009496{col 37}{space 1}    0.83{col 46}{space 3}0.412{col 54}{space 4}-.0011546{col 67}{space 3} .0027356
+{txt}{space 2}precip_sum {c |}{col 14}{res}{space 2}-.0000406{col 26}{space 2}  .000021{col 37}{space 1}   -1.93{col 46}{space 3}0.063{col 54}{space 4}-.0000837{col 67}{space 3} 2.41e-06
+{txt}{space 7}_cons {c |}{col 14}{res}{space 2} .1174318{col 26}{space 2} .0020704{col 37}{space 1}   56.72{col 46}{space 3}0.000{col 54}{space 4} .1131907{col 67}{space 3} .1216729
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}
+{txt}Absorbed degrees of freedom:
+{res}{col 1}{text}{hline 13}{c TT}{hline 12}{hline 12}{hline 14}{hline 1}{c TRC}
+{col 1}{text} Absorbed FE{col 14}{c |} Categories{col 27} - Redundant{col 39}  = Num. Coefs{col 54}{c |}
+{res}{col 1}{text}{hline 13}{c +}{hline 12}{hline 12}{hline 14}{hline 1}{c RT}
+{col 1}{text}     prov_id{col 14}{c |}{space 1}       29{col 27}{space 1}       29{col 39}{result}{space 1}        0{col 53}{text}*{col 54}{c |}
+{res}{col 1}{text}          ym{col 14}{c |}{space 1}      242{col 27}{space 1}        1{col 39}{result}{space 1}      241{col 53}{text} {col 54}{c |}
+{res}{col 1}{text}{hline 13}{c BT}{hline 12}{hline 12}{hline 14}{hline 1}{c BRC}
+* = FE nested within cluster; treated as redundant for DoF computation
+{res}{txt}
+{com}. eststo B4
+{txt}
+{com}. 
+. reghdfe g_IndVA SPEI6_L_x1 SPEI6_L_x2 SPEI6_L_x3 SPEI6_L_x4 SPEI6_L_x5 ///
+>     SPEI6_L_x6 heat_z heat_x_spei_L precip_sum, absorb(prov_id ym) vce(cluster prov_id)
+{res}{txt}({browse "http://scorreia.com/research/hdfe.pdf":MWFE estimator} converged in 4 iterations)
+{res}
+{txt}HDFE Linear regression{col 51}Number of obs{col 67}= {res}     6,975
+{txt}Absorbing 2 HDFE groups{col 51}F({res}   9{txt},{res}     28{txt}){col 67}= {res}      3.04
+{txt}Statistics robust to heteroskedasticity{col 51}Prob > F{col 67}= {res}    0.0115
+{txt}{col 51}R-squared{col 67}= {res}    0.5975
+{txt}{col 51}Adj R-squared{col 67}= {res}    0.5808
+{txt}{col 51}Within R-sq.{col 67}= {res}    0.0014
+{txt}{col 1}Number of clusters ({res}prov_id{txt}) {col 30}= {res}        29{txt}{col 51}Root MSE{col 67}= {res}    0.0550
+
+{txt}{ralign 78:(Std. Err. adjusted for {res:29} clusters in prov_id)}
+{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 14}{c |}{col 26}    Robust
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 2}SPEI6_L_x1 {c |}{col 14}{res}{space 2}-.0009629{col 26}{space 2} .0016305{col 37}{space 1}   -0.59{col 46}{space 3}0.560{col 54}{space 4}-.0043028{col 67}{space 3} .0023771
+{txt}{space 2}SPEI6_L_x2 {c |}{col 14}{res}{space 2}-.0013633{col 26}{space 2} .0024152{col 37}{space 1}   -0.56{col 46}{space 3}0.577{col 54}{space 4}-.0063107{col 67}{space 3} .0035841
+{txt}{space 2}SPEI6_L_x3 {c |}{col 14}{res}{space 2} .0010838{col 26}{space 2}  .003442{col 37}{space 1}    0.31{col 46}{space 3}0.755{col 54}{space 4}-.0059668{col 67}{space 3} .0081344
+{txt}{space 2}SPEI6_L_x4 {c |}{col 14}{res}{space 2} .0022423{col 26}{space 2} .0041084{col 37}{space 1}    0.55{col 46}{space 3}0.590{col 54}{space 4}-.0061734{col 67}{space 3} .0106581
+{txt}{space 2}SPEI6_L_x5 {c |}{col 14}{res}{space 2}-.0009002{col 26}{space 2} .0037185{col 37}{space 1}   -0.24{col 46}{space 3}0.810{col 54}{space 4}-.0085171{col 67}{space 3} .0067167
+{txt}{space 2}SPEI6_L_x6 {c |}{col 14}{res}{space 2} .0074268{col 26}{space 2} .0043882{col 37}{space 1}    1.69{col 46}{space 3}0.102{col 54}{space 4}-.0015621{col 67}{space 3} .0164157
+{txt}{space 6}heat_z {c |}{col 14}{res}{space 2}-.0010896{col 26}{space 2} .0007654{col 37}{space 1}   -1.42{col 46}{space 3}0.166{col 54}{space 4}-.0026576{col 67}{space 3} .0004783
+{txt}heat_x_spe~L {c |}{col 14}{res}{space 2} .0009296{col 26}{space 2} .0009606{col 37}{space 1}    0.97{col 46}{space 3}0.341{col 54}{space 4} -.001038{col 67}{space 3} .0028973
+{txt}{space 2}precip_sum {c |}{col 14}{res}{space 2}-.0000237{col 26}{space 2} .0000103{col 37}{space 1}   -2.30{col 46}{space 3}0.029{col 54}{space 4}-.0000448{col 67}{space 3}-2.57e-06
+{txt}{space 7}_cons {c |}{col 14}{res}{space 2} .1171147{col 26}{space 2}  .002259{col 37}{space 1}   51.84{col 46}{space 3}0.000{col 54}{space 4} .1124873{col 67}{space 3} .1217421
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}
+{txt}Absorbed degrees of freedom:
+{res}{col 1}{text}{hline 13}{c TT}{hline 12}{hline 12}{hline 14}{hline 1}{c TRC}
+{col 1}{text} Absorbed FE{col 14}{c |} Categories{col 27} - Redundant{col 39}  = Num. Coefs{col 54}{c |}
+{res}{col 1}{text}{hline 13}{c +}{hline 12}{hline 12}{hline 14}{hline 1}{c RT}
+{col 1}{text}     prov_id{col 14}{c |}{space 1}       29{col 27}{space 1}       29{col 39}{result}{space 1}        0{col 53}{text}*{col 54}{c |}
+{res}{col 1}{text}          ym{col 14}{c |}{space 1}      242{col 27}{space 1}        1{col 39}{result}{space 1}      241{col 53}{text} {col 54}{c |}
+{res}{col 1}{text}{hline 13}{c BT}{hline 12}{hline 12}{hline 14}{hline 1}{c BRC}
+* = FE nested within cluster; treated as redundant for DoF computation
+{res}{txt}
+{com}. eststo B5
+{txt}
+{com}. 
+. reghdfe g_IndVA SPEI6_L_x1 SPEI6_L_x2 SPEI6_L_x3 SPEI6_L_x4 SPEI6_L_x5 ///
+>     SPEI6_L_x6 SPEI6_L_x1_h SPEI6_L_x2_h SPEI6_L_x3_h SPEI6_L_x4_h ///
+>     SPEI6_L_x5_h SPEI6_L_x6_h heat_z heat_x_spei_L precip_sum, ///
+>     absorb(prov_id ym) vce(cluster prov_id)
+{res}{txt}({browse "http://scorreia.com/research/hdfe.pdf":MWFE estimator} converged in 4 iterations)
+{res}
+{txt}HDFE Linear regression{col 51}Number of obs{col 67}= {res}     6,975
+{txt}Absorbing 2 HDFE groups{col 51}F({res}  15{txt},{res}     28{txt}){col 67}= {res}      9.41
+{txt}Statistics robust to heteroskedasticity{col 51}Prob > F{col 67}= {res}    0.0000
+{txt}{col 51}R-squared{col 67}= {res}    0.5986
+{txt}{col 51}Adj R-squared{col 67}= {res}    0.5816
+{txt}{col 51}Within R-sq.{col 67}= {res}    0.0042
+{txt}{col 1}Number of clusters ({res}prov_id{txt}) {col 30}= {res}        29{txt}{col 51}Root MSE{col 67}= {res}    0.0550
+
+{txt}{ralign 78:(Std. Err. adjusted for {res:29} clusters in prov_id)}
+{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 14}{c |}{col 26}    Robust
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 2}SPEI6_L_x1 {c |}{col 14}{res}{space 2}-.0009468{col 26}{space 2} .0015783{col 37}{space 1}   -0.60{col 46}{space 3}0.553{col 54}{space 4}-.0041797{col 67}{space 3} .0022861
+{txt}{space 2}SPEI6_L_x2 {c |}{col 14}{res}{space 2}-.0015766{col 26}{space 2} .0022638{col 37}{space 1}   -0.70{col 46}{space 3}0.492{col 54}{space 4}-.0062138{col 67}{space 3} .0030605
+{txt}{space 2}SPEI6_L_x3 {c |}{col 14}{res}{space 2}  .000804{col 26}{space 2} .0034446{col 37}{space 1}    0.23{col 46}{space 3}0.817{col 54}{space 4}-.0062519{col 67}{space 3}   .00786
+{txt}{space 2}SPEI6_L_x4 {c |}{col 14}{res}{space 2} .0028706{col 26}{space 2} .0042828{col 37}{space 1}    0.67{col 46}{space 3}0.508{col 54}{space 4}-.0059023{col 67}{space 3} .0116434
+{txt}{space 2}SPEI6_L_x5 {c |}{col 14}{res}{space 2}-.0002067{col 26}{space 2} .0032748{col 37}{space 1}   -0.06{col 46}{space 3}0.950{col 54}{space 4}-.0069148{col 67}{space 3} .0065014
+{txt}{space 2}SPEI6_L_x6 {c |}{col 14}{res}{space 2} .0075387{col 26}{space 2}  .003922{col 37}{space 1}    1.92{col 46}{space 3}0.065{col 54}{space 4}-.0004952{col 67}{space 3} .0155727
+{txt}SPEI6_L_x1_h {c |}{col 14}{res}{space 2}-.0016755{col 26}{space 2} .0013889{col 37}{space 1}   -1.21{col 46}{space 3}0.238{col 54}{space 4}-.0045206{col 67}{space 3} .0011696
+{txt}SPEI6_L_x2_h {c |}{col 14}{res}{space 2}-.0035274{col 26}{space 2}  .002072{col 37}{space 1}   -1.70{col 46}{space 3}0.100{col 54}{space 4}-.0077716{col 67}{space 3} .0007169
+{txt}SPEI6_L_x3_h {c |}{col 14}{res}{space 2}-.0014562{col 26}{space 2}  .003117{col 37}{space 1}   -0.47{col 46}{space 3}0.644{col 54}{space 4}-.0078411{col 67}{space 3} .0049288
+{txt}SPEI6_L_x4_h {c |}{col 14}{res}{space 2}-.0007545{col 26}{space 2} .0032463{col 37}{space 1}   -0.23{col 46}{space 3}0.818{col 54}{space 4}-.0074043{col 67}{space 3} .0058953
+{txt}SPEI6_L_x5_h {c |}{col 14}{res}{space 2}-.0070069{col 26}{space 2}  .002994{col 37}{space 1}   -2.34{col 46}{space 3}0.027{col 54}{space 4}-.0131399{col 67}{space 3} -.000874
+{txt}SPEI6_L_x6_h {c |}{col 14}{res}{space 2}-.0062111{col 26}{space 2} .0032711{col 37}{space 1}   -1.90{col 46}{space 3}0.068{col 54}{space 4}-.0129117{col 67}{space 3} .0004895
+{txt}{space 6}heat_z {c |}{col 14}{res}{space 2}-.0010522{col 26}{space 2} .0007979{col 37}{space 1}   -1.32{col 46}{space 3}0.198{col 54}{space 4}-.0026867{col 67}{space 3} .0005823
+{txt}heat_x_spe~L {c |}{col 14}{res}{space 2} .0006684{col 26}{space 2}  .000986{col 37}{space 1}    0.68{col 46}{space 3}0.503{col 54}{space 4}-.0013513{col 67}{space 3}  .002688
+{txt}{space 2}precip_sum {c |}{col 14}{res}{space 2}-.0000249{col 26}{space 2} .0000103{col 37}{space 1}   -2.41{col 46}{space 3}0.023{col 54}{space 4}-.0000461{col 67}{space 3}-3.76e-06
+{txt}{space 7}_cons {c |}{col 14}{res}{space 2} .1171767{col 26}{space 2} .0022482{col 37}{space 1}   52.12{col 46}{space 3}0.000{col 54}{space 4} .1125714{col 67}{space 3}  .121782
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}
+{txt}Absorbed degrees of freedom:
+{res}{col 1}{text}{hline 13}{c TT}{hline 12}{hline 12}{hline 14}{hline 1}{c TRC}
+{col 1}{text} Absorbed FE{col 14}{c |} Categories{col 27} - Redundant{col 39}  = Num. Coefs{col 54}{c |}
+{res}{col 1}{text}{hline 13}{c +}{hline 12}{hline 12}{hline 14}{hline 1}{c RT}
+{col 1}{text}     prov_id{col 14}{c |}{space 1}       29{col 27}{space 1}       29{col 39}{result}{space 1}        0{col 53}{text}*{col 54}{c |}
+{res}{col 1}{text}          ym{col 14}{c |}{space 1}      242{col 27}{space 1}        1{col 39}{result}{space 1}      241{col 53}{text} {col 54}{c |}
+{res}{col 1}{text}{hline 13}{c BT}{hline 12}{hline 12}{hline 14}{hline 1}{c BRC}
+* = FE nested within cluster; treated as redundant for DoF computation
+{res}{txt}
+{com}. eststo B6
+{txt}
+{com}. 
+. esttab B1 B2 B3 B4 B5 B6 using "output/tables/spei_long_specB.tex", replace ///
+>     booktabs label b(4) se(4) star(* 0.10 ** 0.05 *** 0.01) ///
+>     keep(SPEI3_L_x1 SPEI3_L_x2 SPEI3_L_x3 SPEI3_L_x4 SPEI3_L_x5 SPEI3_L_x6 ///
+>          SPEI3_L_x1_h SPEI3_L_x2_h SPEI3_L_x3_h SPEI3_L_x4_h ///
+>          SPEI3_L_x5_h SPEI3_L_x6_h ///
+>          SPEI1_L_x1 SPEI1_L_x2 SPEI1_L_x3 SPEI1_L_x4 SPEI1_L_x5 SPEI1_L_x6 ///
+>          SPEI1_L_x1_h SPEI1_L_x2_h SPEI1_L_x3_h SPEI1_L_x4_h ///
+>          SPEI1_L_x5_h SPEI1_L_x6_h ///
+>          SPEI6_L_x1 SPEI6_L_x2 SPEI6_L_x3 SPEI6_L_x4 SPEI6_L_x5 SPEI6_L_x6 ///
+>          SPEI6_L_x1_h SPEI6_L_x2_h SPEI6_L_x3_h SPEI6_L_x4_h ///
+>          SPEI6_L_x5_h SPEI6_L_x6_h) ///
+>     mtitles("SPEI3" "SPEI3 $\times$ Hydro" "SPEI1" "SPEI1 $\times$ Hydro" ///
+>             "SPEI6" "SPEI6 $\times$ Hydro") ///
+>     stats(N r2_a, fmt(%9.0fc %9.3f) labels("Observations" "Adj. R-squared")) ///
+>     nonotes ///
+>     addnotes("SEs in parentheses, clustered at province level (29 clusters)." ///
+>              "DV: g_IndVA. Each coefficient is the slope of the one-unit SPEI change inside its bin." ///
+>              "Bins: <=-1.5, (-1.5,-1], (-1,0], (0,1], (1,1.5], >1.5; no separate bin dummies (Eyer-Wichman form)." ///
+>              "HydroShare is standardised; interaction slopes are the extra slope per one SD of baseline hydro share." ///
+>              "FE: province + year-month. Sample: Mar-Dec 2002-2026." ///
+>              "* p<0.10, ** p<0.05, *** p<0.01.")
+{res}{txt}(output written to {browse  `"output/tables/spei_long_specB.tex"'})
+
+{com}. 
+. * --- Linear spline with the same knots (preferred form if it differs) ------
+. * Basis: x, (x+1.5)+, (x+1)+, (x)+, (x-1)+, (x-1.5)+; segment slopes are sums
+. * of the basis coefficients up to the segment's upper knot.
+. matrix S = J(36, 5, .)
+{txt}
+{com}. local row = 0
+{txt}
+{com}. 
+. foreach sc of numlist 1 3 6 {c -(}
+{txt}  2{com}.     gen bx_0   = SPEI`sc'_L
+{txt}  3{com}.     gen bx_15  = max(SPEI`sc'_L + 1.5, 0)
+{txt}  4{com}.     gen bx_1   = max(SPEI`sc'_L + 1, 0)
+{txt}  5{com}.     gen bx_00  = max(SPEI`sc'_L, 0)
+{txt}  6{com}.     gen bx_10  = max(SPEI`sc'_L - 1, 0)
+{txt}  7{com}.     gen bx_115 = max(SPEI`sc'_L - 1.5, 0)
+{txt}  8{com}.     gen hbx_0   = bx_0   * HydroShare_z
+{txt}  9{com}.     gen hbx_15  = bx_15  * HydroShare_z
+{txt} 10{com}.     gen hbx_1   = bx_1   * HydroShare_z
+{txt} 11{com}.     gen hbx_00  = bx_00  * HydroShare_z
+{txt} 12{com}.     gen hbx_10  = bx_10  * HydroShare_z
+{txt} 13{com}.     gen hbx_115 = bx_115 * HydroShare_z
+{txt} 14{com}. 
+.     reghdfe g_IndVA bx_0 bx_15 bx_1 bx_00 bx_10 bx_115 ///
+>         hbx_0 hbx_15 hbx_1 hbx_00 hbx_10 hbx_115 ///
+>         heat_z heat_x_spei_L precip_sum, absorb(prov_id ym) vce(cluster prov_id)
+{txt} 15{com}.     estimates store spl`sc'
+{txt} 16{com}. 
+.     local e0 "bx_0"
+{txt} 17{com}.     local e1 "bx_0 + bx_15"
+{txt} 18{com}.     local e2 "bx_0 + bx_15 + bx_1"
+{txt} 19{com}.     local e3 "bx_0 + bx_15 + bx_1 + bx_00"
+{txt} 20{com}.     local e4 "bx_0 + bx_15 + bx_1 + bx_00 + bx_10"
+{txt} 21{com}.     local e5 "bx_0 + bx_15 + bx_1 + bx_00 + bx_10 + bx_115"
+{txt} 22{com}.     local h0 "hbx_0"
+{txt} 23{com}.     local h1 "hbx_0 + hbx_15"
+{txt} 24{com}.     local h2 "hbx_0 + hbx_15 + hbx_1"
+{txt} 25{com}.     local h3 "hbx_0 + hbx_15 + hbx_1 + hbx_00"
+{txt} 26{com}.     local h4 "hbx_0 + hbx_15 + hbx_1 + hbx_00 + hbx_10"
+{txt} 27{com}.     local h5 "hbx_0 + hbx_15 + hbx_1 + hbx_00 + hbx_10 + hbx_115"
+{txt} 28{com}. 
+.     forvalues j = 0/5 {c -(}
+{txt} 29{com}.         local row = `row' + 1
+{txt} 30{com}.         matrix S[`row', 1] = `sc'
+{txt} 31{com}.         matrix S[`row', 2] = `j' + 1
+{txt} 32{com}.         matrix S[`row', 3] = 0
+{txt} 33{com}.         lincom `e`j''
+{txt} 34{com}.         matrix S[`row', 4] = r(estimate)
+{txt} 35{com}.         matrix S[`row', 5] = r(se)
+{txt} 36{com}.         local row = `row' + 1
+{txt} 37{com}.         matrix S[`row', 1] = `sc'
+{txt} 38{com}.         matrix S[`row', 2] = `j' + 1
+{txt} 39{com}.         matrix S[`row', 3] = 1
+{txt} 40{com}.         lincom `e`j'' + `h`j''
+{txt} 41{com}.         matrix S[`row', 4] = r(estimate)
+{txt} 42{com}.         matrix S[`row', 5] = r(se)
+{txt} 43{com}.     {c )-}
+{txt} 44{com}.     drop bx_0 bx_15 bx_1 bx_00 bx_10 bx_115 hbx_0 hbx_15 hbx_1 hbx_00 hbx_10 hbx_115
+{txt} 45{com}. {c )-}
+{res}{txt}({browse "http://scorreia.com/research/hdfe.pdf":MWFE estimator} converged in 4 iterations)
+{res}
+{txt}HDFE Linear regression{col 51}Number of obs{col 67}= {res}     6,975
+{txt}Absorbing 2 HDFE groups{col 51}F({res}  15{txt},{res}     28{txt}){col 67}= {res}      4.07
+{txt}Statistics robust to heteroskedasticity{col 51}Prob > F{col 67}= {res}    0.0007
+{txt}{col 51}R-squared{col 67}= {res}    0.5980
+{txt}{col 51}Adj R-squared{col 67}= {res}    0.5809
+{txt}{col 51}Within R-sq.{col 67}= {res}    0.0024
+{txt}{col 1}Number of clusters ({res}prov_id{txt}) {col 30}= {res}        29{txt}{col 51}Root MSE{col 67}= {res}    0.0550
+
+{txt}{ralign 78:(Std. Err. adjusted for {res:29} clusters in prov_id)}
+{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 14}{c |}{col 26}    Robust
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 8}bx_0 {c |}{col 14}{res}{space 2} .0016101{col 26}{space 2} .0026811{col 37}{space 1}    0.60{col 46}{space 3}0.553{col 54}{space 4}-.0038819{col 67}{space 3} .0071021
+{txt}{space 7}bx_15 {c |}{col 14}{res}{space 2} .0059508{col 26}{space 2} .0066652{col 37}{space 1}    0.89{col 46}{space 3}0.380{col 54}{space 4}-.0077021{col 67}{space 3} .0196038
+{txt}{space 8}bx_1 {c |}{col 14}{res}{space 2}-.0123543{col 26}{space 2}  .006019{col 37}{space 1}   -2.05{col 46}{space 3}0.050{col 54}{space 4}-.0246837{col 67}{space 3}-.0000248
+{txt}{space 7}bx_00 {c |}{col 14}{res}{space 2} .0093854{col 26}{space 2} .0037215{col 37}{space 1}    2.52{col 46}{space 3}0.018{col 54}{space 4} .0017623{col 67}{space 3} .0170084
+{txt}{space 7}bx_10 {c |}{col 14}{res}{space 2}-.0091133{col 26}{space 2} .0095313{col 37}{space 1}   -0.96{col 46}{space 3}0.347{col 54}{space 4}-.0286373{col 67}{space 3} .0104107
+{txt}{space 6}bx_115 {c |}{col 14}{res}{space 2} .0231905{col 26}{space 2} .0132621{col 37}{space 1}    1.75{col 46}{space 3}0.091{col 54}{space 4}-.0039758{col 67}{space 3} .0503567
+{txt}{space 7}hbx_0 {c |}{col 14}{res}{space 2}-.0002958{col 26}{space 2} .0026338{col 37}{space 1}   -0.11{col 46}{space 3}0.911{col 54}{space 4}-.0056909{col 67}{space 3} .0050993
+{txt}{space 6}hbx_15 {c |}{col 14}{res}{space 2}-.0057763{col 26}{space 2} .0077881{col 37}{space 1}   -0.74{col 46}{space 3}0.464{col 54}{space 4}-.0217296{col 67}{space 3} .0101769
+{txt}{space 7}hbx_1 {c |}{col 14}{res}{space 2} .0046556{col 26}{space 2}  .008614{col 37}{space 1}    0.54{col 46}{space 3}0.593{col 54}{space 4}-.0129895{col 67}{space 3} .0223007
+{txt}{space 6}hbx_00 {c |}{col 14}{res}{space 2}  .004784{col 26}{space 2} .0072576{col 37}{space 1}    0.66{col 46}{space 3}0.515{col 54}{space 4}-.0100826{col 67}{space 3} .0196506
+{txt}{space 6}hbx_10 {c |}{col 14}{res}{space 2} -.012905{col 26}{space 2}  .008316{col 37}{space 1}   -1.55{col 46}{space 3}0.132{col 54}{space 4}-.0299396{col 67}{space 3} .0041296
+{txt}{space 5}hbx_115 {c |}{col 14}{res}{space 2} .0126572{col 26}{space 2} .0123764{col 37}{space 1}    1.02{col 46}{space 3}0.315{col 54}{space 4}-.0126948{col 67}{space 3} .0380091
+{txt}{space 6}heat_z {c |}{col 14}{res}{space 2}-.0007906{col 26}{space 2} .0006637{col 37}{space 1}   -1.19{col 46}{space 3}0.244{col 54}{space 4}  -.00215{col 67}{space 3} .0005689
+{txt}heat_x_spe~L {c |}{col 14}{res}{space 2} .0007689{col 26}{space 2} .0009076{col 37}{space 1}    0.85{col 46}{space 3}0.404{col 54}{space 4}-.0010903{col 67}{space 3} .0026281
+{txt}{space 2}precip_sum {c |}{col 14}{res}{space 2}-.0000416{col 26}{space 2} .0000227{col 37}{space 1}   -1.83{col 46}{space 3}0.078{col 54}{space 4}-.0000881{col 67}{space 3} 5.01e-06
+{txt}{space 7}_cons {c |}{col 14}{res}{space 2}  .120541{col 26}{space 2} .0057682{col 37}{space 1}   20.90{col 46}{space 3}0.000{col 54}{space 4} .1087254{col 67}{space 3} .1323566
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}
+{txt}Absorbed degrees of freedom:
+{res}{col 1}{text}{hline 13}{c TT}{hline 12}{hline 12}{hline 14}{hline 1}{c TRC}
+{col 1}{text} Absorbed FE{col 14}{c |} Categories{col 27} - Redundant{col 39}  = Num. Coefs{col 54}{c |}
+{res}{col 1}{text}{hline 13}{c +}{hline 12}{hline 12}{hline 14}{hline 1}{c RT}
+{col 1}{text}     prov_id{col 14}{c |}{space 1}       29{col 27}{space 1}       29{col 39}{result}{space 1}        0{col 53}{text}*{col 54}{c |}
+{res}{col 1}{text}          ym{col 14}{c |}{space 1}      242{col 27}{space 1}        1{col 39}{result}{space 1}      241{col 53}{text} {col 54}{c |}
+{res}{col 1}{text}{hline 13}{c BT}{hline 12}{hline 12}{hline 14}{hline 1}{c BRC}
+* = FE nested within cluster; treated as redundant for DoF computation
+{res}
+{p 0 7}{space 1}{text:( 1)}{space 1} bx_0 = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .0016101{col 26}{space 2} .0026811{col 37}{space 1}    0.60{col 46}{space 3}0.553{col 54}{space 4}-.0038819{col 67}{space 3} .0071021
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1} {res}bx_0 + hbx_0 = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .0013142{col 26}{space 2} .0042339{col 37}{space 1}    0.31{col 46}{space 3}0.759{col 54}{space 4}-.0073584{col 67}{space 3} .0099869
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1} {res}bx_0 + bx_15 = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .0075609{col 26}{space 2} .0049466{col 37}{space 1}    1.53{col 46}{space 3}0.138{col 54}{space 4}-.0025717{col 67}{space 3} .0176935
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1} {res}bx_0 + bx_15 + hbx_0 + hbx_15 = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .0014887{col 26}{space 2} .0078267{col 37}{space 1}    0.19{col 46}{space 3}0.851{col 54}{space 4}-.0145435{col 67}{space 3}  .017521
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1} {res}bx_0 + bx_15 + bx_1 = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}-.0047934{col 26}{space 2} .0025511{col 37}{space 1}   -1.88{col 46}{space 3}0.071{col 54}{space 4} -.010019{col 67}{space 3} .0004323
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1} {res}bx_0 + bx_15 + bx_1 + hbx_0 + hbx_15 + hbx_1 = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}-.0062099{col 26}{space 2} .0049922{col 37}{space 1}   -1.24{col 46}{space 3}0.224{col 54}{space 4} -.016436{col 67}{space 3} .0040161
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1} {res}bx_0 + bx_15 + bx_1 + bx_00 = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}  .004592{col 26}{space 2} .0025043{col 37}{space 1}    1.83{col 46}{space 3}0.077{col 54}{space 4}-.0005379{col 67}{space 3} .0097219
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1} {res}bx_0 + bx_15 + bx_1 + bx_00 + hbx_0 + hbx_15 + hbx_1 + hbx_00 = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .0079595{col 26}{space 2} .0045247{col 37}{space 1}    1.76{col 46}{space 3}0.089{col 54}{space 4} -.001309{col 67}{space 3}  .017228
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1} {res}bx_0 + bx_15 + bx_1 + bx_00 + bx_10 = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}-.0045213{col 26}{space 2} .0086552{col 37}{space 1}   -0.52{col 46}{space 3}0.606{col 54}{space 4}-.0222507{col 67}{space 3} .0132081
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1} {res}bx_0 + bx_15 + bx_1 + bx_00 + bx_10 + hbx_0 + hbx_15 + hbx_1 + hbx_00 + hbx_10 = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}-.0140589{col 26}{space 2} .0082568{col 37}{space 1}   -1.70{col 46}{space 3}0.100{col 54}{space 4}-.0309721{col 67}{space 3} .0028544
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1} {res}bx_0 + bx_15 + bx_1 + bx_00 + bx_10 + bx_115 = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .0186692{col 26}{space 2} .0084055{col 37}{space 1}    2.22{col 46}{space 3}0.035{col 54}{space 4} .0014513{col 67}{space 3}  .035887
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1} {res}bx_0 + bx_15 + bx_1 + bx_00 + bx_10 + bx_115 + hbx_0 + hbx_15 + hbx_1 + hbx_00 + hbx_10 + hbx_115 = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .0217888{col 26}{space 2} .0124197{col 37}{space 1}    1.75{col 46}{space 3}0.090{col 54}{space 4}-.0036518{col 67}{space 3} .0472293
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}{txt}({browse "http://scorreia.com/research/hdfe.pdf":MWFE estimator} converged in 4 iterations)
+{res}
+{txt}HDFE Linear regression{col 51}Number of obs{col 67}= {res}     6,975
+{txt}Absorbing 2 HDFE groups{col 51}F({res}  15{txt},{res}     28{txt}){col 67}= {res}      3.11
+{txt}Statistics robust to heteroskedasticity{col 51}Prob > F{col 67}= {res}    0.0046
+{txt}{col 51}R-squared{col 67}= {res}    0.5981
+{txt}{col 51}Adj R-squared{col 67}= {res}    0.5810
+{txt}{col 51}Within R-sq.{col 67}= {res}    0.0028
+{txt}{col 1}Number of clusters ({res}prov_id{txt}) {col 30}= {res}        29{txt}{col 51}Root MSE{col 67}= {res}    0.0550
+
+{txt}{ralign 78:(Std. Err. adjusted for {res:29} clusters in prov_id)}
+{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 14}{c |}{col 26}    Robust
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 8}bx_0 {c |}{col 14}{res}{space 2}  .002476{col 26}{space 2} .0042135{col 37}{space 1}    0.59{col 46}{space 3}0.561{col 54}{space 4}-.0061551{col 67}{space 3}  .011107
+{txt}{space 7}bx_15 {c |}{col 14}{res}{space 2}-.0059112{col 26}{space 2} .0098059{col 37}{space 1}   -0.60{col 46}{space 3}0.551{col 54}{space 4}-.0259976{col 67}{space 3} .0141753
+{txt}{space 8}bx_1 {c |}{col 14}{res}{space 2}-.0009516{col 26}{space 2} .0074952{col 37}{space 1}   -0.13{col 46}{space 3}0.900{col 54}{space 4}-.0163048{col 67}{space 3} .0144016
+{txt}{space 7}bx_00 {c |}{col 14}{res}{space 2} .0100368{col 26}{space 2} .0049767{col 37}{space 1}    2.02{col 46}{space 3}0.053{col 54}{space 4}-.0001575{col 67}{space 3} .0202311
+{txt}{space 7}bx_10 {c |}{col 14}{res}{space 2} -.012898{col 26}{space 2} .0113893{col 37}{space 1}   -1.13{col 46}{space 3}0.267{col 54}{space 4}-.0362278{col 67}{space 3} .0104319
+{txt}{space 6}bx_115 {c |}{col 14}{res}{space 2} .0326288{col 26}{space 2} .0408935{col 37}{space 1}    0.80{col 46}{space 3}0.432{col 54}{space 4}-.0511377{col 67}{space 3} .1163953
+{txt}{space 7}hbx_0 {c |}{col 14}{res}{space 2}  .000809{col 26}{space 2}  .005168{col 37}{space 1}    0.16{col 46}{space 3}0.877{col 54}{space 4}-.0097772{col 67}{space 3} .0113951
+{txt}{space 6}hbx_15 {c |}{col 14}{res}{space 2}-.0020651{col 26}{space 2} .0117667{col 37}{space 1}   -0.18{col 46}{space 3}0.862{col 54}{space 4} -.026168{col 67}{space 3} .0220378
+{txt}{space 7}hbx_1 {c |}{col 14}{res}{space 2}-.0024645{col 26}{space 2} .0060882{col 37}{space 1}   -0.40{col 46}{space 3}0.689{col 54}{space 4}-.0149357{col 67}{space 3} .0100067
+{txt}{space 6}hbx_00 {c |}{col 14}{res}{space 2}  .004535{col 26}{space 2} .0072711{col 37}{space 1}    0.62{col 46}{space 3}0.538{col 54}{space 4}-.0103592{col 67}{space 3} .0194293
+{txt}{space 6}hbx_10 {c |}{col 14}{res}{space 2}-.0097159{col 26}{space 2} .0091698{col 37}{space 1}   -1.06{col 46}{space 3}0.298{col 54}{space 4}-.0284993{col 67}{space 3} .0090675
+{txt}{space 5}hbx_115 {c |}{col 14}{res}{space 2} .0272093{col 26}{space 2} .0516642{col 37}{space 1}    0.53{col 46}{space 3}0.603{col 54}{space 4}-.0786199{col 67}{space 3} .1330386
+{txt}{space 6}heat_z {c |}{col 14}{res}{space 2} -.000933{col 26}{space 2} .0007238{col 37}{space 1}   -1.29{col 46}{space 3}0.208{col 54}{space 4}-.0024156{col 67}{space 3} .0005496
+{txt}heat_x_spe~L {c |}{col 14}{res}{space 2} .0005445{col 26}{space 2} .0009761{col 37}{space 1}    0.56{col 46}{space 3}0.581{col 54}{space 4}-.0014551{col 67}{space 3}  .002544
+{txt}{space 2}precip_sum {c |}{col 14}{res}{space 2}-.0000246{col 26}{space 2} 9.13e-06{col 37}{space 1}   -2.70{col 46}{space 3}0.012{col 54}{space 4}-.0000433{col 67}{space 3}-5.95e-06
+{txt}{space 7}_cons {c |}{col 14}{res}{space 2} .1245842{col 26}{space 2}  .008982{col 37}{space 1}   13.87{col 46}{space 3}0.000{col 54}{space 4} .1061853{col 67}{space 3} .1429831
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}
+{txt}Absorbed degrees of freedom:
+{res}{col 1}{text}{hline 13}{c TT}{hline 12}{hline 12}{hline 14}{hline 1}{c TRC}
+{col 1}{text} Absorbed FE{col 14}{c |} Categories{col 27} - Redundant{col 39}  = Num. Coefs{col 54}{c |}
+{res}{col 1}{text}{hline 13}{c +}{hline 12}{hline 12}{hline 14}{hline 1}{c RT}
+{col 1}{text}     prov_id{col 14}{c |}{space 1}       29{col 27}{space 1}       29{col 39}{result}{space 1}        0{col 53}{text}*{col 54}{c |}
+{res}{col 1}{text}          ym{col 14}{c |}{space 1}      242{col 27}{space 1}        1{col 39}{result}{space 1}      241{col 53}{text} {col 54}{c |}
+{res}{col 1}{text}{hline 13}{c BT}{hline 12}{hline 12}{hline 14}{hline 1}{c BRC}
+* = FE nested within cluster; treated as redundant for DoF computation
+{res}
+{p 0 7}{space 1}{text:( 1)}{space 1} bx_0 = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}  .002476{col 26}{space 2} .0042135{col 37}{space 1}    0.59{col 46}{space 3}0.561{col 54}{space 4}-.0061551{col 67}{space 3}  .011107
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1} {res}bx_0 + hbx_0 = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .0032849{col 26}{space 2} .0075166{col 37}{space 1}    0.44{col 46}{space 3}0.665{col 54}{space 4}-.0121122{col 67}{space 3}  .018682
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1} {res}bx_0 + bx_15 = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}-.0034352{col 26}{space 2} .0066217{col 37}{space 1}   -0.52{col 46}{space 3}0.608{col 54}{space 4}-.0169992{col 67}{space 3} .0101288
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1} {res}bx_0 + bx_15 + hbx_0 + hbx_15 = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}-.0046914{col 26}{space 2} .0103798{col 37}{space 1}   -0.45{col 46}{space 3}0.655{col 54}{space 4}-.0259534{col 67}{space 3} .0165707
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1} {res}bx_0 + bx_15 + bx_1 = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}-.0043868{col 26}{space 2}  .002531{col 37}{space 1}   -1.73{col 46}{space 3}0.094{col 54}{space 4}-.0095713{col 67}{space 3} .0007977
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1} {res}bx_0 + bx_15 + bx_1 + hbx_0 + hbx_15 + hbx_1 = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}-.0081075{col 26}{space 2} .0040665{col 37}{space 1}   -1.99{col 46}{space 3}0.056{col 54}{space 4}-.0164373{col 67}{space 3} .0002224
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1} {res}bx_0 + bx_15 + bx_1 + bx_00 = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}   .00565{col 26}{space 2} .0030125{col 37}{space 1}    1.88{col 46}{space 3}0.071{col 54}{space 4}-.0005208{col 67}{space 3} .0118208
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1} {res}bx_0 + bx_15 + bx_1 + bx_00 + hbx_0 + hbx_15 + hbx_1 + hbx_00 = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .0064643{col 26}{space 2} .0047681{col 37}{space 1}    1.36{col 46}{space 3}0.186{col 54}{space 4}-.0033026{col 67}{space 3} .0162313
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1} {res}bx_0 + bx_15 + bx_1 + bx_00 + bx_10 = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} -.007248{col 26}{space 2}  .010273{col 37}{space 1}   -0.71{col 46}{space 3}0.486{col 54}{space 4}-.0282913{col 67}{space 3} .0137953
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1} {res}bx_0 + bx_15 + bx_1 + bx_00 + bx_10 + hbx_0 + hbx_15 + hbx_1 + hbx_00 + hbx_10 = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}-.0161495{col 26}{space 2} .0113609{col 37}{space 1}   -1.42{col 46}{space 3}0.166{col 54}{space 4}-.0394212{col 67}{space 3} .0071222
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1} {res}bx_0 + bx_15 + bx_1 + bx_00 + bx_10 + bx_115 = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .0253809{col 26}{space 2} .0364113{col 37}{space 1}    0.70{col 46}{space 3}0.492{col 54}{space 4}-.0492043{col 67}{space 3}  .099966
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1} {res}bx_0 + bx_15 + bx_1 + bx_00 + bx_10 + bx_115 + hbx_0 + hbx_15 + hbx_1 + hbx_00 + hbx_10 + hbx_115 = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .0436887{col 26}{space 2} .0816704{col 37}{space 1}    0.53{col 46}{space 3}0.597{col 54}{space 4}-.1236055{col 67}{space 3} .2109829
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}{txt}({browse "http://scorreia.com/research/hdfe.pdf":MWFE estimator} converged in 4 iterations)
+{res}
+{txt}HDFE Linear regression{col 51}Number of obs{col 67}= {res}     6,975
+{txt}Absorbing 2 HDFE groups{col 51}F({res}  15{txt},{res}     28{txt}){col 67}= {res}      9.35
+{txt}Statistics robust to heteroskedasticity{col 51}Prob > F{col 67}= {res}    0.0000
+{txt}{col 51}R-squared{col 67}= {res}    0.5989
+{txt}{col 51}Adj R-squared{col 67}= {res}    0.5819
+{txt}{col 51}Within R-sq.{col 67}= {res}    0.0048
+{txt}{col 1}Number of clusters ({res}prov_id{txt}) {col 30}= {res}        29{txt}{col 51}Root MSE{col 67}= {res}    0.0550
+
+{txt}{ralign 78:(Std. Err. adjusted for {res:29} clusters in prov_id)}
+{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 14}{c |}{col 26}    Robust
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 8}bx_0 {c |}{col 14}{res}{space 2} .0062716{col 26}{space 2} .0034911{col 37}{space 1}    1.80{col 46}{space 3}0.083{col 54}{space 4}-.0008797{col 67}{space 3} .0134229
+{txt}{space 7}bx_15 {c |}{col 14}{res}{space 2}-.0127813{col 26}{space 2} .0093146{col 37}{space 1}   -1.37{col 46}{space 3}0.181{col 54}{space 4}-.0318614{col 67}{space 3} .0062988
+{txt}{space 8}bx_1 {c |}{col 14}{res}{space 2} .0034183{col 26}{space 2} .0087305{col 37}{space 1}    0.39{col 46}{space 3}0.698{col 54}{space 4}-.0144653{col 67}{space 3} .0213018
+{txt}{space 7}bx_00 {c |}{col 14}{res}{space 2} .0081135{col 26}{space 2} .0056613{col 37}{space 1}    1.43{col 46}{space 3}0.163{col 54}{space 4} -.003483{col 67}{space 3} .0197101
+{txt}{space 7}bx_10 {c |}{col 14}{res}{space 2}-.0238251{col 26}{space 2} .0192593{col 37}{space 1}   -1.24{col 46}{space 3}0.226{col 54}{space 4} -.063276{col 67}{space 3} .0156259
+{txt}{space 6}bx_115 {c |}{col 14}{res}{space 2} .2196449{col 26}{space 2} .0707879{col 37}{space 1}    3.10{col 46}{space 3}0.004{col 54}{space 4} .0746424{col 67}{space 3} .3646474
+{txt}{space 7}hbx_0 {c |}{col 14}{res}{space 2}-.0055663{col 26}{space 2} .0024076{col 37}{space 1}   -2.31{col 46}{space 3}0.028{col 54}{space 4} -.010498{col 67}{space 3}-.0006345
+{txt}{space 6}hbx_15 {c |}{col 14}{res}{space 2} .0056734{col 26}{space 2} .0072961{col 37}{space 1}    0.78{col 46}{space 3}0.443{col 54}{space 4}-.0092721{col 67}{space 3} .0206188
+{txt}{space 7}hbx_1 {c |}{col 14}{res}{space 2}-.0004262{col 26}{space 2} .0080832{col 37}{space 1}   -0.05{col 46}{space 3}0.958{col 54}{space 4} -.016984{col 67}{space 3} .0161315
+{txt}{space 6}hbx_00 {c |}{col 14}{res}{space 2}-.0036253{col 26}{space 2} .0043469{col 37}{space 1}   -0.83{col 46}{space 3}0.411{col 54}{space 4}-.0125296{col 67}{space 3} .0052789
+{txt}{space 6}hbx_10 {c |}{col 14}{res}{space 2}-.0224125{col 26}{space 2} .0147478{col 37}{space 1}   -1.52{col 46}{space 3}0.140{col 54}{space 4}-.0526219{col 67}{space 3} .0077969
+{txt}{space 5}hbx_115 {c |}{col 14}{res}{space 2} .0940097{col 26}{space 2} .0585319{col 37}{space 1}    1.61{col 46}{space 3}0.119{col 54}{space 4}-.0258875{col 67}{space 3}  .213907
+{txt}{space 6}heat_z {c |}{col 14}{res}{space 2}-.0008853{col 26}{space 2}  .000784{col 37}{space 1}   -1.13{col 46}{space 3}0.268{col 54}{space 4}-.0024912{col 67}{space 3} .0007206
+{txt}heat_x_spe~L {c |}{col 14}{res}{space 2} .0005784{col 26}{space 2} .0009982{col 37}{space 1}    0.58{col 46}{space 3}0.567{col 54}{space 4}-.0014662{col 67}{space 3} .0026231
+{txt}{space 2}precip_sum {c |}{col 14}{res}{space 2}-.0000223{col 26}{space 2} 9.55e-06{col 37}{space 1}   -2.33{col 46}{space 3}0.027{col 54}{space 4}-.0000418{col 67}{space 3}-2.73e-06
+{txt}{space 7}_cons {c |}{col 14}{res}{space 2} .1311512{col 26}{space 2} .0074226{col 37}{space 1}   17.67{col 46}{space 3}0.000{col 54}{space 4} .1159467{col 67}{space 3} .1463557
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}
+{txt}Absorbed degrees of freedom:
+{res}{col 1}{text}{hline 13}{c TT}{hline 12}{hline 12}{hline 14}{hline 1}{c TRC}
+{col 1}{text} Absorbed FE{col 14}{c |} Categories{col 27} - Redundant{col 39}  = Num. Coefs{col 54}{c |}
+{res}{col 1}{text}{hline 13}{c +}{hline 12}{hline 12}{hline 14}{hline 1}{c RT}
+{col 1}{text}     prov_id{col 14}{c |}{space 1}       29{col 27}{space 1}       29{col 39}{result}{space 1}        0{col 53}{text}*{col 54}{c |}
+{res}{col 1}{text}          ym{col 14}{c |}{space 1}      242{col 27}{space 1}        1{col 39}{result}{space 1}      241{col 53}{text} {col 54}{c |}
+{res}{col 1}{text}{hline 13}{c BT}{hline 12}{hline 12}{hline 14}{hline 1}{c BRC}
+* = FE nested within cluster; treated as redundant for DoF computation
+{res}
+{p 0 7}{space 1}{text:( 1)}{space 1} bx_0 = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .0062716{col 26}{space 2} .0034911{col 37}{space 1}    1.80{col 46}{space 3}0.083{col 54}{space 4}-.0008797{col 67}{space 3} .0134229
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1} {res}bx_0 + hbx_0 = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .0007053{col 26}{space 2}  .003959{col 37}{space 1}    0.18{col 46}{space 3}0.860{col 54}{space 4}-.0074044{col 67}{space 3}  .008815
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1} {res}bx_0 + bx_15 = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}-.0065097{col 26}{space 2} .0072429{col 37}{space 1}   -0.90{col 46}{space 3}0.376{col 54}{space 4}-.0213461{col 67}{space 3} .0083267
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1} {res}bx_0 + bx_15 + hbx_0 + hbx_15 = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}-.0064026{col 26}{space 2}  .010302{col 37}{space 1}   -0.62{col 46}{space 3}0.539{col 54}{space 4}-.0275053{col 67}{space 3} .0147001
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1} {res}bx_0 + bx_15 + bx_1 = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}-.0030914{col 26}{space 2} .0026309{col 37}{space 1}   -1.18{col 46}{space 3}0.250{col 54}{space 4}-.0084806{col 67}{space 3} .0022978
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1} {res}bx_0 + bx_15 + bx_1 + hbx_0 + hbx_15 + hbx_1 = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}-.0034106{col 26}{space 2} .0025021{col 37}{space 1}   -1.36{col 46}{space 3}0.184{col 54}{space 4}-.0085359{col 67}{space 3} .0017148
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1} {res}bx_0 + bx_15 + bx_1 + bx_00 = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .0050221{col 26}{space 2} .0039146{col 37}{space 1}    1.28{col 46}{space 3}0.210{col 54}{space 4}-.0029966{col 67}{space 3} .0130408
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1} {res}bx_0 + bx_15 + bx_1 + bx_00 + hbx_0 + hbx_15 + hbx_1 + hbx_00 = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .0010776{col 26}{space 2}  .002984{col 37}{space 1}    0.36{col 46}{space 3}0.721{col 54}{space 4}-.0050349{col 67}{space 3} .0071901
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1} {res}bx_0 + bx_15 + bx_1 + bx_00 + bx_10 = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}-.0188029{col 26}{space 2} .0169752{col 37}{space 1}   -1.11{col 46}{space 3}0.277{col 54}{space 4}-.0535751{col 67}{space 3} .0159692
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1} {res}bx_0 + bx_15 + bx_1 + bx_00 + bx_10 + hbx_0 + hbx_15 + hbx_1 + hbx_00 + hbx_10 = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}  -.04516{col 26}{space 2} .0187208{col 37}{space 1}   -2.41{col 46}{space 3}0.023{col 54}{space 4}-.0835078{col 67}{space 3}-.0068121
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1} {res}bx_0 + bx_15 + bx_1 + bx_00 + bx_10 + bx_115 = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2}  .200842{col 26}{space 2} .0586815{col 37}{space 1}    3.42{col 46}{space 3}0.002{col 54}{space 4} .0806384{col 67}{space 3} .3210456
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{p 0 7}{space 1}{text:( 1)}{space 1} {res}bx_0 + bx_15 + bx_1 + bx_00 + bx_10 + bx_115 + hbx_0 + hbx_15 + hbx_1 + hbx_00 + hbx_10 + hbx_115 = 0{p_end}
+
+{txt}{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 9}(1) {c |}{col 14}{res}{space 2} .2684947{col 26}{space 2} .0557367{col 37}{space 1}    4.82{col 46}{space 3}0.000{col 54}{space 4} .1543232{col 67}{space 3} .3826661
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+
+{com}. 
+. matrix colnames S = scale segment hydro b se
+{txt}
+{com}. preserve
+{txt}
+{com}.     clear
+{txt}
+{com}.     svmat S, names(col)
+{txt}number of observations will be reset to 36
+Press any key to continue, or Break to abort
+{p}
+number of observations (_N)  was 0,
+now 36
+{p_end}
+
+{com}.     export delimited scale segment hydro b se ///
+>         using "output/intermediates/spei_long_spline.csv", replace
+{res}{txt}(note: file output/intermediates/spei_long_spline.csv not found)
+{txt}file output/intermediates/spei_long_spline.csv saved
+
+{com}. restore
+{txt}
+{com}. 
+. * ===========================================================================
+. * (d) Reference-period and PET comparison on one collapsed-dummy spec
+. *     Variants: old SPEI3 (2000-2026 fit), SPEI3_L (1940-2025 fit),
+. *     prefit (1940-2001), WMO (1961-2020), calendar-month, Thornthwaite.
+. *     Each variant has its own z-score and heat x SPEI control.
+. * ===========================================================================
+. eststo clear
+{txt}
+{com}. local names "old L pre wmo cm th"
+{txt}
+{com}. local vars  "SPEI3 SPEI3_L SPEI3_L_prefit SPEI3_L_wmo SPEI3_L_cm SPEI3_L_th"
+{txt}
+{com}. local k = 0
+{txt}
+{com}. foreach n of local names {c -(}
+{txt}  2{com}.     local ++k
+{txt}  3{com}.     local v : word `k' of `vars'
+{txt}  4{com}.     egen z_`n' = std(`v')
+{txt}  5{com}.     gen byte dr_`n' = (`v' <= -1) if !missing(`v')
+{txt}  6{com}.     gen drh_`n' = dr_`n' * HydroShare_z
+{txt}  7{com}.     gen hx_`n' = heat_z * z_`n'
+{txt}  8{com}.     label var dr_`n' "Drought: SPEI $\leq -1$"
+{txt}  9{com}.     label var drh_`n' "Drought $\times$ HydroShare(z)"
+{txt} 10{com}.     reghdfe g_IndVA dr_`n' drh_`n' heat_z hx_`n' precip_sum, ///
+>         absorb(prov_id ym) vce(cluster prov_id)
+{txt} 11{com}.     eststo V_`n'
+{txt} 12{com}. {c )-}
+{res}{txt}({browse "http://scorreia.com/research/hdfe.pdf":MWFE estimator} converged in 4 iterations)
+{res}
+{txt}HDFE Linear regression{col 51}Number of obs{col 67}= {res}     6,975
+{txt}Absorbing 2 HDFE groups{col 51}F({res}   5{txt},{res}     28{txt}){col 67}= {res}      1.20
+{txt}Statistics robust to heteroskedasticity{col 51}Prob > F{col 67}= {res}    0.3356
+{txt}{col 51}R-squared{col 67}= {res}    0.5978
+{txt}{col 51}Adj R-squared{col 67}= {res}    0.5813
+{txt}{col 51}Within R-sq.{col 67}= {res}    0.0020
+{txt}{col 1}Number of clusters ({res}prov_id{txt}) {col 30}= {res}        29{txt}{col 51}Root MSE{col 67}= {res}    0.0550
+
+{txt}{ralign 78:(Std. Err. adjusted for {res:29} clusters in prov_id)}
+{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 14}{c |}{col 26}    Robust
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 6}dr_old {c |}{col 14}{res}{space 2} .0039097{col 26}{space 2} .0022567{col 37}{space 1}    1.73{col 46}{space 3}0.094{col 54}{space 4} -.000713{col 67}{space 3} .0085323
+{txt}{space 5}drh_old {c |}{col 14}{res}{space 2} .0049129{col 26}{space 2} .0035847{col 37}{space 1}    1.37{col 46}{space 3}0.181{col 54}{space 4}  -.00243{col 67}{space 3} .0122558
+{txt}{space 6}heat_z {c |}{col 14}{res}{space 2} -.000423{col 26}{space 2} .0006471{col 37}{space 1}   -0.65{col 46}{space 3}0.519{col 54}{space 4}-.0017487{col 67}{space 3} .0009026
+{txt}{space 6}hx_old {c |}{col 14}{res}{space 2} .0007473{col 26}{space 2} .0007885{col 37}{space 1}    0.95{col 46}{space 3}0.351{col 54}{space 4}-.0008679{col 67}{space 3} .0023625
+{txt}{space 2}precip_sum {c |}{col 14}{res}{space 2}-.0000169{col 26}{space 2} .0000112{col 37}{space 1}   -1.51{col 46}{space 3}0.143{col 54}{space 4}-.0000398{col 67}{space 3} 6.06e-06
+{txt}{space 7}_cons {c |}{col 14}{res}{space 2} .1167014{col 26}{space 2} .0012417{col 37}{space 1}   93.99{col 46}{space 3}0.000{col 54}{space 4}  .114158{col 67}{space 3} .1192449
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}
+{txt}Absorbed degrees of freedom:
+{res}{col 1}{text}{hline 13}{c TT}{hline 12}{hline 12}{hline 14}{hline 1}{c TRC}
+{col 1}{text} Absorbed FE{col 14}{c |} Categories{col 27} - Redundant{col 39}  = Num. Coefs{col 54}{c |}
+{res}{col 1}{text}{hline 13}{c +}{hline 12}{hline 12}{hline 14}{hline 1}{c RT}
+{col 1}{text}     prov_id{col 14}{c |}{space 1}       29{col 27}{space 1}       29{col 39}{result}{space 1}        0{col 53}{text}*{col 54}{c |}
+{res}{col 1}{text}          ym{col 14}{c |}{space 1}      242{col 27}{space 1}        1{col 39}{result}{space 1}      241{col 53}{text} {col 54}{c |}
+{res}{col 1}{text}{hline 13}{c BT}{hline 12}{hline 12}{hline 14}{hline 1}{c BRC}
+* = FE nested within cluster; treated as redundant for DoF computation
+{res}{txt}({browse "http://scorreia.com/research/hdfe.pdf":MWFE estimator} converged in 4 iterations)
+{res}
+{txt}HDFE Linear regression{col 51}Number of obs{col 67}= {res}     6,975
+{txt}Absorbing 2 HDFE groups{col 51}F({res}   5{txt},{res}     28{txt}){col 67}= {res}      1.34
+{txt}Statistics robust to heteroskedasticity{col 51}Prob > F{col 67}= {res}    0.2771
+{txt}{col 51}R-squared{col 67}= {res}    0.5977
+{txt}{col 51}Adj R-squared{col 67}= {res}    0.5813
+{txt}{col 51}Within R-sq.{col 67}= {res}    0.0018
+{txt}{col 1}Number of clusters ({res}prov_id{txt}) {col 30}= {res}        29{txt}{col 51}Root MSE{col 67}= {res}    0.0550
+
+{txt}{ralign 78:(Std. Err. adjusted for {res:29} clusters in prov_id)}
+{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 14}{c |}{col 26}    Robust
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 8}dr_L {c |}{col 14}{res}{space 2} .0027718{col 26}{space 2} .0021225{col 37}{space 1}    1.31{col 46}{space 3}0.202{col 54}{space 4} -.001576{col 67}{space 3} .0071196
+{txt}{space 7}drh_L {c |}{col 14}{res}{space 2} .0037079{col 26}{space 2} .0023551{col 37}{space 1}    1.57{col 46}{space 3}0.127{col 54}{space 4}-.0011162{col 67}{space 3} .0085321
+{txt}{space 6}heat_z {c |}{col 14}{res}{space 2}-.0008885{col 26}{space 2} .0006774{col 37}{space 1}   -1.31{col 46}{space 3}0.200{col 54}{space 4}-.0022762{col 67}{space 3} .0004992
+{txt}{space 8}hx_L {c |}{col 14}{res}{space 2} .0007612{col 26}{space 2}  .000968{col 37}{space 1}    0.79{col 46}{space 3}0.438{col 54}{space 4}-.0012217{col 67}{space 3}  .002744
+{txt}{space 2}precip_sum {c |}{col 14}{res}{space 2}-.0000176{col 26}{space 2} 8.80e-06{col 37}{space 1}   -2.00{col 46}{space 3}0.055{col 54}{space 4}-.0000357{col 67}{space 3} 4.20e-07
+{txt}{space 7}_cons {c |}{col 14}{res}{space 2} .1166263{col 26}{space 2} .0009155{col 37}{space 1}  127.40{col 46}{space 3}0.000{col 54}{space 4} .1147511{col 67}{space 3} .1185015
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}
+{txt}Absorbed degrees of freedom:
+{res}{col 1}{text}{hline 13}{c TT}{hline 12}{hline 12}{hline 14}{hline 1}{c TRC}
+{col 1}{text} Absorbed FE{col 14}{c |} Categories{col 27} - Redundant{col 39}  = Num. Coefs{col 54}{c |}
+{res}{col 1}{text}{hline 13}{c +}{hline 12}{hline 12}{hline 14}{hline 1}{c RT}
+{col 1}{text}     prov_id{col 14}{c |}{space 1}       29{col 27}{space 1}       29{col 39}{result}{space 1}        0{col 53}{text}*{col 54}{c |}
+{res}{col 1}{text}          ym{col 14}{c |}{space 1}      242{col 27}{space 1}        1{col 39}{result}{space 1}      241{col 53}{text} {col 54}{c |}
+{res}{col 1}{text}{hline 13}{c BT}{hline 12}{hline 12}{hline 14}{hline 1}{c BRC}
+* = FE nested within cluster; treated as redundant for DoF computation
+{res}{txt}({browse "http://scorreia.com/research/hdfe.pdf":MWFE estimator} converged in 4 iterations)
+{res}
+{txt}HDFE Linear regression{col 51}Number of obs{col 67}= {res}     6,975
+{txt}Absorbing 2 HDFE groups{col 51}F({res}   5{txt},{res}     28{txt}){col 67}= {res}      1.26
+{txt}Statistics robust to heteroskedasticity{col 51}Prob > F{col 67}= {res}    0.3098
+{txt}{col 51}R-squared{col 67}= {res}    0.5977
+{txt}{col 51}Adj R-squared{col 67}= {res}    0.5812
+{txt}{col 51}Within R-sq.{col 67}= {res}    0.0018
+{txt}{col 1}Number of clusters ({res}prov_id{txt}) {col 30}= {res}        29{txt}{col 51}Root MSE{col 67}= {res}    0.0550
+
+{txt}{ralign 78:(Std. Err. adjusted for {res:29} clusters in prov_id)}
+{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 14}{c |}{col 26}    Robust
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 6}dr_pre {c |}{col 14}{res}{space 2} .0023976{col 26}{space 2} .0021819{col 37}{space 1}    1.10{col 46}{space 3}0.281{col 54}{space 4}-.0020719{col 67}{space 3}  .006867
+{txt}{space 5}drh_pre {c |}{col 14}{res}{space 2} .0036598{col 26}{space 2} .0026284{col 37}{space 1}    1.39{col 46}{space 3}0.175{col 54}{space 4}-.0017243{col 67}{space 3} .0090438
+{txt}{space 6}heat_z {c |}{col 14}{res}{space 2}-.0009277{col 26}{space 2} .0006861{col 37}{space 1}   -1.35{col 46}{space 3}0.187{col 54}{space 4}-.0023331{col 67}{space 3} .0004777
+{txt}{space 6}hx_pre {c |}{col 14}{res}{space 2}  .000822{col 26}{space 2} .0009773{col 37}{space 1}    0.84{col 46}{space 3}0.407{col 54}{space 4}-.0011798{col 67}{space 3} .0028238
+{txt}{space 2}precip_sum {c |}{col 14}{res}{space 2}-.0000186{col 26}{space 2} 9.16e-06{col 37}{space 1}   -2.03{col 46}{space 3}0.052{col 54}{space 4}-.0000374{col 67}{space 3} 1.35e-07
+{txt}{space 7}_cons {c |}{col 14}{res}{space 2} .1167786{col 26}{space 2} .0009943{col 37}{space 1}  117.44{col 46}{space 3}0.000{col 54}{space 4} .1147417{col 67}{space 3} .1188154
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}
+{txt}Absorbed degrees of freedom:
+{res}{col 1}{text}{hline 13}{c TT}{hline 12}{hline 12}{hline 14}{hline 1}{c TRC}
+{col 1}{text} Absorbed FE{col 14}{c |} Categories{col 27} - Redundant{col 39}  = Num. Coefs{col 54}{c |}
+{res}{col 1}{text}{hline 13}{c +}{hline 12}{hline 12}{hline 14}{hline 1}{c RT}
+{col 1}{text}     prov_id{col 14}{c |}{space 1}       29{col 27}{space 1}       29{col 39}{result}{space 1}        0{col 53}{text}*{col 54}{c |}
+{res}{col 1}{text}          ym{col 14}{c |}{space 1}      242{col 27}{space 1}        1{col 39}{result}{space 1}      241{col 53}{text} {col 54}{c |}
+{res}{col 1}{text}{hline 13}{c BT}{hline 12}{hline 12}{hline 14}{hline 1}{c BRC}
+* = FE nested within cluster; treated as redundant for DoF computation
+{res}{txt}({browse "http://scorreia.com/research/hdfe.pdf":MWFE estimator} converged in 4 iterations)
+{res}
+{txt}HDFE Linear regression{col 51}Number of obs{col 67}= {res}     6,975
+{txt}Absorbing 2 HDFE groups{col 51}F({res}   5{txt},{res}     28{txt}){col 67}= {res}      1.51
+{txt}Statistics robust to heteroskedasticity{col 51}Prob > F{col 67}= {res}    0.2189
+{txt}{col 51}R-squared{col 67}= {res}    0.5977
+{txt}{col 51}Adj R-squared{col 67}= {res}    0.5813
+{txt}{col 51}Within R-sq.{col 67}= {res}    0.0019
+{txt}{col 1}Number of clusters ({res}prov_id{txt}) {col 30}= {res}        29{txt}{col 51}Root MSE{col 67}= {res}    0.0550
+
+{txt}{ralign 78:(Std. Err. adjusted for {res:29} clusters in prov_id)}
+{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 14}{c |}{col 26}    Robust
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 6}dr_wmo {c |}{col 14}{res}{space 2} .0023963{col 26}{space 2} .0019266{col 37}{space 1}    1.24{col 46}{space 3}0.224{col 54}{space 4}-.0015503{col 67}{space 3} .0063428
+{txt}{space 5}drh_wmo {c |}{col 14}{res}{space 2} .0041234{col 26}{space 2} .0023952{col 37}{space 1}    1.72{col 46}{space 3}0.096{col 54}{space 4} -.000783{col 67}{space 3} .0090297
+{txt}{space 6}heat_z {c |}{col 14}{res}{space 2}-.0008268{col 26}{space 2} .0006431{col 37}{space 1}   -1.29{col 46}{space 3}0.209{col 54}{space 4} -.002144{col 67}{space 3} .0004905
+{txt}{space 6}hx_wmo {c |}{col 14}{res}{space 2} .0007512{col 26}{space 2} .0009133{col 37}{space 1}    0.82{col 46}{space 3}0.418{col 54}{space 4}-.0011196{col 67}{space 3}  .002622
+{txt}{space 2}precip_sum {c |}{col 14}{res}{space 2}-.0000183{col 26}{space 2} 9.71e-06{col 37}{space 1}   -1.88{col 46}{space 3}0.070{col 54}{space 4}-.0000382{col 67}{space 3} 1.62e-06
+{txt}{space 7}_cons {c |}{col 14}{res}{space 2} .1167601{col 26}{space 2} .0010566{col 37}{space 1}  110.51{col 46}{space 3}0.000{col 54}{space 4} .1145958{col 67}{space 3} .1189245
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}
+{txt}Absorbed degrees of freedom:
+{res}{col 1}{text}{hline 13}{c TT}{hline 12}{hline 12}{hline 14}{hline 1}{c TRC}
+{col 1}{text} Absorbed FE{col 14}{c |} Categories{col 27} - Redundant{col 39}  = Num. Coefs{col 54}{c |}
+{res}{col 1}{text}{hline 13}{c +}{hline 12}{hline 12}{hline 14}{hline 1}{c RT}
+{col 1}{text}     prov_id{col 14}{c |}{space 1}       29{col 27}{space 1}       29{col 39}{result}{space 1}        0{col 53}{text}*{col 54}{c |}
+{res}{col 1}{text}          ym{col 14}{c |}{space 1}      242{col 27}{space 1}        1{col 39}{result}{space 1}      241{col 53}{text} {col 54}{c |}
+{res}{col 1}{text}{hline 13}{c BT}{hline 12}{hline 12}{hline 14}{hline 1}{c BRC}
+* = FE nested within cluster; treated as redundant for DoF computation
+{res}{txt}({browse "http://scorreia.com/research/hdfe.pdf":MWFE estimator} converged in 4 iterations)
+{res}
+{txt}HDFE Linear regression{col 51}Number of obs{col 67}= {res}     6,975
+{txt}Absorbing 2 HDFE groups{col 51}F({res}   5{txt},{res}     28{txt}){col 67}= {res}      1.91
+{txt}Statistics robust to heteroskedasticity{col 51}Prob > F{col 67}= {res}    0.1250
+{txt}{col 51}R-squared{col 67}= {res}    0.5980
+{txt}{col 51}Adj R-squared{col 67}= {res}    0.5816
+{txt}{col 51}Within R-sq.{col 67}= {res}    0.0026
+{txt}{col 1}Number of clusters ({res}prov_id{txt}) {col 30}= {res}        29{txt}{col 51}Root MSE{col 67}= {res}    0.0550
+
+{txt}{ralign 78:(Std. Err. adjusted for {res:29} clusters in prov_id)}
+{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 14}{c |}{col 26}    Robust
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 7}dr_cm {c |}{col 14}{res}{space 2} .0030343{col 26}{space 2} .0023388{col 37}{space 1}    1.30{col 46}{space 3}0.205{col 54}{space 4}-.0017565{col 67}{space 3} .0078252
+{txt}{space 6}drh_cm {c |}{col 14}{res}{space 2} .0052229{col 26}{space 2} .0025961{col 37}{space 1}    2.01{col 46}{space 3}0.054{col 54}{space 4}-.0000948{col 67}{space 3} .0105407
+{txt}{space 6}heat_z {c |}{col 14}{res}{space 2}-.0006725{col 26}{space 2} .0006369{col 37}{space 1}   -1.06{col 46}{space 3}0.300{col 54}{space 4} -.001977{col 67}{space 3} .0006321
+{txt}{space 7}hx_cm {c |}{col 14}{res}{space 2} .0014533{col 26}{space 2} .0011392{col 37}{space 1}    1.28{col 46}{space 3}0.213{col 54}{space 4}-.0008802{col 67}{space 3} .0037868
+{txt}{space 2}precip_sum {c |}{col 14}{res}{space 2}-.0000237{col 26}{space 2}  .000011{col 37}{space 1}   -2.15{col 46}{space 3}0.041{col 54}{space 4}-.0000462{col 67}{space 3}-1.08e-06
+{txt}{space 7}_cons {c |}{col 14}{res}{space 2} .1174749{col 26}{space 2}  .001119{col 37}{space 1}  104.99{col 46}{space 3}0.000{col 54}{space 4} .1151828{col 67}{space 3}  .119767
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}
+{txt}Absorbed degrees of freedom:
+{res}{col 1}{text}{hline 13}{c TT}{hline 12}{hline 12}{hline 14}{hline 1}{c TRC}
+{col 1}{text} Absorbed FE{col 14}{c |} Categories{col 27} - Redundant{col 39}  = Num. Coefs{col 54}{c |}
+{res}{col 1}{text}{hline 13}{c +}{hline 12}{hline 12}{hline 14}{hline 1}{c RT}
+{col 1}{text}     prov_id{col 14}{c |}{space 1}       29{col 27}{space 1}       29{col 39}{result}{space 1}        0{col 53}{text}*{col 54}{c |}
+{res}{col 1}{text}          ym{col 14}{c |}{space 1}      242{col 27}{space 1}        1{col 39}{result}{space 1}      241{col 53}{text} {col 54}{c |}
+{res}{col 1}{text}{hline 13}{c BT}{hline 12}{hline 12}{hline 14}{hline 1}{c BRC}
+* = FE nested within cluster; treated as redundant for DoF computation
+{res}{txt}({browse "http://scorreia.com/research/hdfe.pdf":MWFE estimator} converged in 4 iterations)
+{res}
+{txt}HDFE Linear regression{col 51}Number of obs{col 67}= {res}     6,975
+{txt}Absorbing 2 HDFE groups{col 51}F({res}   5{txt},{res}     28{txt}){col 67}= {res}      1.07
+{txt}Statistics robust to heteroskedasticity{col 51}Prob > F{col 67}= {res}    0.3983
+{txt}{col 51}R-squared{col 67}= {res}    0.5978
+{txt}{col 51}Adj R-squared{col 67}= {res}    0.5814
+{txt}{col 51}Within R-sq.{col 67}= {res}    0.0021
+{txt}{col 1}Number of clusters ({res}prov_id{txt}) {col 30}= {res}        29{txt}{col 51}Root MSE{col 67}= {res}    0.0550
+
+{txt}{ralign 78:(Std. Err. adjusted for {res:29} clusters in prov_id)}
+{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 14}{c |}{col 26}    Robust
+{col 1}     g_IndVA{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 7}dr_th {c |}{col 14}{res}{space 2}  .003119{col 26}{space 2} .0023511{col 37}{space 1}    1.33{col 46}{space 3}0.195{col 54}{space 4}-.0016971{col 67}{space 3} .0079351
+{txt}{space 6}drh_th {c |}{col 14}{res}{space 2} .0045443{col 26}{space 2} .0034741{col 37}{space 1}    1.31{col 46}{space 3}0.201{col 54}{space 4} -.002572{col 67}{space 3} .0116606
+{txt}{space 6}heat_z {c |}{col 14}{res}{space 2}-.0004687{col 26}{space 2} .0006614{col 37}{space 1}   -0.71{col 46}{space 3}0.484{col 54}{space 4}-.0018234{col 67}{space 3}  .000886
+{txt}{space 7}hx_th {c |}{col 14}{res}{space 2} .0008178{col 26}{space 2} .0008497{col 37}{space 1}    0.96{col 46}{space 3}0.344{col 54}{space 4}-.0009227{col 67}{space 3} .0025583
+{txt}{space 2}precip_sum {c |}{col 14}{res}{space 2}-.0000165{col 26}{space 2} .0000103{col 37}{space 1}   -1.60{col 46}{space 3}0.121{col 54}{space 4}-.0000376{col 67}{space 3} 4.62e-06
+{txt}{space 7}_cons {c |}{col 14}{res}{space 2} .1166046{col 26}{space 2} .0012255{col 37}{space 1}   95.15{col 46}{space 3}0.000{col 54}{space 4} .1140943{col 67}{space 3} .1191149
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}
+{txt}Absorbed degrees of freedom:
+{res}{col 1}{text}{hline 13}{c TT}{hline 12}{hline 12}{hline 14}{hline 1}{c TRC}
+{col 1}{text} Absorbed FE{col 14}{c |} Categories{col 27} - Redundant{col 39}  = Num. Coefs{col 54}{c |}
+{res}{col 1}{text}{hline 13}{c +}{hline 12}{hline 12}{hline 14}{hline 1}{c RT}
+{col 1}{text}     prov_id{col 14}{c |}{space 1}       29{col 27}{space 1}       29{col 39}{result}{space 1}        0{col 53}{text}*{col 54}{c |}
+{res}{col 1}{text}          ym{col 14}{c |}{space 1}      242{col 27}{space 1}        1{col 39}{result}{space 1}      241{col 53}{text} {col 54}{c |}
+{res}{col 1}{text}{hline 13}{c BT}{hline 12}{hline 12}{hline 14}{hline 1}{c BRC}
+* = FE nested within cluster; treated as redundant for DoF computation
+{res}{txt}
+{com}. 
+. esttab V_old V_L V_pre V_wmo V_cm V_th ///
+>     using "output/tables/spei_long_baseline_compare.tex", replace ///
+>     booktabs label b(4) se(4) star(* 0.10 ** 0.05 *** 0.01) ///
+>     keep(dr_* drh_*) ///
+>     mtitles("Old SPEI3" "SPEI3 L" "Prefit 1940-2001" "WMO 1961-2020" ///
+>             "Calendar month" "Thornthwaite") ///
+>     stats(N r2_a, fmt(%9.0fc %9.3f) labels("Observations" "Adj. R-squared")) ///
+>     nonotes ///
+>     addnotes("SEs in parentheses, clustered at province level (29 clusters)." ///
+>              "DV: g_IndVA. Each column: 1(SPEI <= -1) + its HydroShare(z) interaction." ///
+>              "Rows: the drought dummy and its interaction (coefplot row labels follow variable names)." ///
+>              "Each variant uses its own sample z-score in the heat x SPEI control." ///
+>              "Baselines: old = 2000-2026; L = 1940-2025; prefit = 1940-2001; WMO = 1961-2020." ///
+>              "Calendar month: separate log-logistic fit per calendar month. Thornthwaite: temperature-only PET." ///
+>              "FE: province + year-month. Sample: Mar-Dec 2002-2026." ///
+>              "* p<0.10, ** p<0.05, *** p<0.01.")
+{res}{txt}(output written to {browse  `"output/tables/spei_long_baseline_compare.tex"'})
+
+{com}. 
+. * ===========================================================================
+. * (e) Mechanism: Spec A categories on generation outcomes
+. * ===========================================================================
+. eststo clear
+{txt}
+{com}. foreach y in ln_hydro ln_thermal ln_total hydro_frac {c -(}
+{txt}  2{com}.     reghdfe `y' d1 d2 w1 w2 d1_x_h d2_x_h w1_x_h w2_x_h ///
+>         heat_z heat_x_spei_L precip_sum, absorb(prov_id ym) vce(cluster prov_id)
+{txt}  3{com}.     eststo M_`y'
+{txt}  4{com}. {c )-}
+{res}{txt}({browse "http://scorreia.com/research/hdfe.pdf":MWFE estimator} converged in 4 iterations)
+{res}
+{txt}HDFE Linear regression{col 51}Number of obs{col 67}= {res}     6,975
+{txt}Absorbing 2 HDFE groups{col 51}F({res}  11{txt},{res}     28{txt}){col 67}= {res}     15.25
+{txt}Statistics robust to heteroskedasticity{col 51}Prob > F{col 67}= {res}    0.0000
+{txt}{col 51}R-squared{col 67}= {res}    0.9304
+{txt}{col 51}Adj R-squared{col 67}= {res}    0.9275
+{txt}{col 51}Within R-sq.{col 67}= {res}    0.0513
+{txt}{col 1}Number of clusters ({res}prov_id{txt}) {col 30}= {res}        29{txt}{col 51}Root MSE{col 67}= {res}    0.3792
+
+{txt}{ralign 78:(Std. Err. adjusted for {res:29} clusters in prov_id)}
+{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 14}{c |}{col 26}    Robust
+{col 1}    ln_hydro{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 10}d1 {c |}{col 14}{res}{space 2}-.1895775{col 26}{space 2} .0298088{col 37}{space 1}   -6.36{col 46}{space 3}0.000{col 54}{space 4} -.250638{col 67}{space 3}-.1285169
+{txt}{space 10}d2 {c |}{col 14}{res}{space 2}-.1020196{col 26}{space 2} .0252883{col 37}{space 1}   -4.03{col 46}{space 3}0.000{col 54}{space 4}-.1538204{col 67}{space 3}-.0502188
+{txt}{space 10}w1 {c |}{col 14}{res}{space 2} .1135612{col 26}{space 2} .0316456{col 37}{space 1}    3.59{col 46}{space 3}0.001{col 54}{space 4} .0487381{col 67}{space 3} .1783843
+{txt}{space 10}w2 {c |}{col 14}{res}{space 2} .1717006{col 26}{space 2} .0540369{col 37}{space 1}    3.18{col 46}{space 3}0.004{col 54}{space 4} .0610112{col 67}{space 3} .2823901
+{txt}{space 6}d1_x_h {c |}{col 14}{res}{space 2}-.0413077{col 26}{space 2} .0330768{col 37}{space 1}   -1.25{col 46}{space 3}0.222{col 54}{space 4}-.1090625{col 67}{space 3} .0264471
+{txt}{space 6}d2_x_h {c |}{col 14}{res}{space 2} -.020996{col 26}{space 2} .0216841{col 37}{space 1}   -0.97{col 46}{space 3}0.341{col 54}{space 4} -.065414{col 67}{space 3} .0234219
+{txt}{space 6}w1_x_h {c |}{col 14}{res}{space 2} .0352807{col 26}{space 2} .0257704{col 37}{space 1}    1.37{col 46}{space 3}0.182{col 54}{space 4}-.0175075{col 67}{space 3}  .088069
+{txt}{space 6}w2_x_h {c |}{col 14}{res}{space 2} .0314915{col 26}{space 2} .0315753{col 37}{space 1}    1.00{col 46}{space 3}0.327{col 54}{space 4}-.0331876{col 67}{space 3} .0961706
+{txt}{space 6}heat_z {c |}{col 14}{res}{space 2}-.0300269{col 26}{space 2} .0178033{col 37}{space 1}   -1.69{col 46}{space 3}0.103{col 54}{space 4}-.0664953{col 67}{space 3} .0064416
+{txt}heat_x_spe~L {c |}{col 14}{res}{space 2} .0040169{col 26}{space 2} .0051024{col 37}{space 1}    0.79{col 46}{space 3}0.438{col 54}{space 4}-.0064349{col 67}{space 3} .0144686
+{txt}{space 2}precip_sum {c |}{col 14}{res}{space 2} .0002776{col 26}{space 2} .0002242{col 37}{space 1}    1.24{col 46}{space 3}0.226{col 54}{space 4}-.0001816{col 67}{space 3} .0007369
+{txt}{space 7}_cons {c |}{col 14}{res}{space 2} 2.177851{col 26}{space 2}  .021432{col 37}{space 1}  101.62{col 46}{space 3}0.000{col 54}{space 4} 2.133949{col 67}{space 3} 2.221752
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}
+{txt}Absorbed degrees of freedom:
+{res}{col 1}{text}{hline 13}{c TT}{hline 12}{hline 12}{hline 14}{hline 1}{c TRC}
+{col 1}{text} Absorbed FE{col 14}{c |} Categories{col 27} - Redundant{col 39}  = Num. Coefs{col 54}{c |}
+{res}{col 1}{text}{hline 13}{c +}{hline 12}{hline 12}{hline 14}{hline 1}{c RT}
+{col 1}{text}     prov_id{col 14}{c |}{space 1}       29{col 27}{space 1}       29{col 39}{result}{space 1}        0{col 53}{text}*{col 54}{c |}
+{res}{col 1}{text}          ym{col 14}{c |}{space 1}      242{col 27}{space 1}        1{col 39}{result}{space 1}      241{col 53}{text} {col 54}{c |}
+{res}{col 1}{text}{hline 13}{c BT}{hline 12}{hline 12}{hline 14}{hline 1}{c BRC}
+* = FE nested within cluster; treated as redundant for DoF computation
+{res}{txt}({browse "http://scorreia.com/research/hdfe.pdf":MWFE estimator} converged in 4 iterations)
+{res}
+{txt}HDFE Linear regression{col 51}Number of obs{col 67}= {res}     6,975
+{txt}Absorbing 2 HDFE groups{col 51}F({res}  11{txt},{res}     28{txt}){col 67}= {res}     15.01
+{txt}Statistics robust to heteroskedasticity{col 51}Prob > F{col 67}= {res}    0.0000
+{txt}{col 51}R-squared{col 67}= {res}    0.9556
+{txt}{col 51}Adj R-squared{col 67}= {res}    0.9537
+{txt}{col 51}Within R-sq.{col 67}= {res}    0.0591
+{txt}{col 1}Number of clusters ({res}prov_id{txt}) {col 30}= {res}        29{txt}{col 51}Root MSE{col 67}= {res}    0.2612
+
+{txt}{ralign 78:(Std. Err. adjusted for {res:29} clusters in prov_id)}
+{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 14}{c |}{col 26}    Robust
+{col 1}  ln_thermal{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 10}d1 {c |}{col 14}{res}{space 2} .0436665{col 26}{space 2} .0169222{col 37}{space 1}    2.58{col 46}{space 3}0.015{col 54}{space 4} .0090029{col 67}{space 3} .0783302
+{txt}{space 10}d2 {c |}{col 14}{res}{space 2} .0331748{col 26}{space 2}  .011421{col 37}{space 1}    2.90{col 46}{space 3}0.007{col 54}{space 4} .0097799{col 67}{space 3} .0565697
+{txt}{space 10}w1 {c |}{col 14}{res}{space 2} -.067776{col 26}{space 2} .0177924{col 37}{space 1}   -3.81{col 46}{space 3}0.001{col 54}{space 4}-.1042221{col 67}{space 3}-.0313298
+{txt}{space 10}w2 {c |}{col 14}{res}{space 2}-.0580801{col 26}{space 2} .0267163{col 37}{space 1}   -2.17{col 46}{space 3}0.038{col 54}{space 4} -.112806{col 67}{space 3}-.0033541
+{txt}{space 6}d1_x_h {c |}{col 14}{res}{space 2} .0477268{col 26}{space 2} .0234079{col 37}{space 1}    2.04{col 46}{space 3}0.051{col 54}{space 4}-.0002221{col 67}{space 3} .0956756
+{txt}{space 6}d2_x_h {c |}{col 14}{res}{space 2} .0361556{col 26}{space 2}   .01908{col 37}{space 1}    1.89{col 46}{space 3}0.068{col 54}{space 4} -.002928{col 67}{space 3} .0752391
+{txt}{space 6}w1_x_h {c |}{col 14}{res}{space 2}-.0544801{col 26}{space 2} .0246328{col 37}{space 1}   -2.21{col 46}{space 3}0.035{col 54}{space 4} -.104938{col 67}{space 3}-.0040221
+{txt}{space 6}w2_x_h {c |}{col 14}{res}{space 2}-.0335891{col 26}{space 2} .0143288{col 37}{space 1}   -2.34{col 46}{space 3}0.026{col 54}{space 4}-.0629403{col 67}{space 3} -.004238
+{txt}{space 6}heat_z {c |}{col 14}{res}{space 2} .0597819{col 26}{space 2} .0129945{col 37}{space 1}    4.60{col 46}{space 3}0.000{col 54}{space 4} .0331639{col 67}{space 3}    .0864
+{txt}heat_x_spe~L {c |}{col 14}{res}{space 2} .0041485{col 26}{space 2} .0030675{col 37}{space 1}    1.35{col 46}{space 3}0.187{col 54}{space 4} -.002135{col 67}{space 3} .0104321
+{txt}{space 2}precip_sum {c |}{col 14}{res}{space 2}-.0001576{col 26}{space 2} .0001691{col 37}{space 1}   -0.93{col 46}{space 3}0.359{col 54}{space 4} -.000504{col 67}{space 3} .0001888
+{txt}{space 7}_cons {c |}{col 14}{res}{space 2} 4.218943{col 26}{space 2} .0177933{col 37}{space 1}  237.11{col 46}{space 3}0.000{col 54}{space 4} 4.182495{col 67}{space 3} 4.255391
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}
+{txt}Absorbed degrees of freedom:
+{res}{col 1}{text}{hline 13}{c TT}{hline 12}{hline 12}{hline 14}{hline 1}{c TRC}
+{col 1}{text} Absorbed FE{col 14}{c |} Categories{col 27} - Redundant{col 39}  = Num. Coefs{col 54}{c |}
+{res}{col 1}{text}{hline 13}{c +}{hline 12}{hline 12}{hline 14}{hline 1}{c RT}
+{col 1}{text}     prov_id{col 14}{c |}{space 1}       29{col 27}{space 1}       29{col 39}{result}{space 1}        0{col 53}{text}*{col 54}{c |}
+{res}{col 1}{text}          ym{col 14}{c |}{space 1}      242{col 27}{space 1}        1{col 39}{result}{space 1}      241{col 53}{text} {col 54}{c |}
+{res}{col 1}{text}{hline 13}{c BT}{hline 12}{hline 12}{hline 14}{hline 1}{c BRC}
+* = FE nested within cluster; treated as redundant for DoF computation
+{res}{txt}({browse "http://scorreia.com/research/hdfe.pdf":MWFE estimator} converged in 4 iterations)
+{res}
+{txt}HDFE Linear regression{col 51}Number of obs{col 67}= {res}     6,975
+{txt}Absorbing 2 HDFE groups{col 51}F({res}  11{txt},{res}     28{txt}){col 67}= {res}      8.27
+{txt}Statistics robust to heteroskedasticity{col 51}Prob > F{col 67}= {res}    0.0000
+{txt}{col 51}R-squared{col 67}= {res}    0.9582
+{txt}{col 51}Adj R-squared{col 67}= {res}    0.9564
+{txt}{col 51}Within R-sq.{col 67}= {res}    0.0171
+{txt}{col 1}Number of clusters ({res}prov_id{txt}) {col 30}= {res}        29{txt}{col 51}Root MSE{col 67}= {res}    0.2204
+
+{txt}{ralign 78:(Std. Err. adjusted for {res:29} clusters in prov_id)}
+{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 14}{c |}{col 26}    Robust
+{col 1}    ln_total{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 10}d1 {c |}{col 14}{res}{space 2}-.0495028{col 26}{space 2} .0158539{col 37}{space 1}   -3.12{col 46}{space 3}0.004{col 54}{space 4} -.081978{col 67}{space 3}-.0170276
+{txt}{space 10}d2 {c |}{col 14}{res}{space 2}-.0148279{col 26}{space 2} .0082711{col 37}{space 1}   -1.79{col 46}{space 3}0.084{col 54}{space 4}-.0317705{col 67}{space 3} .0021147
+{txt}{space 10}w1 {c |}{col 14}{res}{space 2} -.018016{col 26}{space 2} .0152351{col 37}{space 1}   -1.18{col 46}{space 3}0.247{col 54}{space 4}-.0492237{col 67}{space 3} .0131918
+{txt}{space 10}w2 {c |}{col 14}{res}{space 2}-.0292322{col 26}{space 2}  .021724{col 37}{space 1}   -1.35{col 46}{space 3}0.189{col 54}{space 4}-.0737318{col 67}{space 3} .0152675
+{txt}{space 6}d1_x_h {c |}{col 14}{res}{space 2}-.0129242{col 26}{space 2} .0193626{col 37}{space 1}   -0.67{col 46}{space 3}0.510{col 54}{space 4}-.0525866{col 67}{space 3} .0267383
+{txt}{space 6}d2_x_h {c |}{col 14}{res}{space 2} .0051086{col 26}{space 2} .0109414{col 37}{space 1}    0.47{col 46}{space 3}0.644{col 54}{space 4}-.0173038{col 67}{space 3}  .027521
+{txt}{space 6}w1_x_h {c |}{col 14}{res}{space 2} .0569835{col 26}{space 2} .0144187{col 37}{space 1}    3.95{col 46}{space 3}0.000{col 54}{space 4} .0274481{col 67}{space 3} .0865188
+{txt}{space 6}w2_x_h {c |}{col 14}{res}{space 2} .0792018{col 26}{space 2} .0120656{col 37}{space 1}    6.56{col 46}{space 3}0.000{col 54}{space 4} .0544866{col 67}{space 3}  .103917
+{txt}{space 6}heat_z {c |}{col 14}{res}{space 2} .0180974{col 26}{space 2} .0080963{col 37}{space 1}    2.24{col 46}{space 3}0.034{col 54}{space 4} .0015129{col 67}{space 3} .0346819
+{txt}heat_x_spe~L {c |}{col 14}{res}{space 2}-.0006892{col 26}{space 2}  .002776{col 37}{space 1}   -0.25{col 46}{space 3}0.806{col 54}{space 4}-.0063756{col 67}{space 3} .0049971
+{txt}{space 2}precip_sum {c |}{col 14}{res}{space 2}-.0000926{col 26}{space 2} .0000833{col 37}{space 1}   -1.11{col 46}{space 3}0.276{col 54}{space 4}-.0002632{col 67}{space 3}  .000078
+{txt}{space 7}_cons {c |}{col 14}{res}{space 2} 4.647767{col 26}{space 2}  .008849{col 37}{space 1}  525.23{col 46}{space 3}0.000{col 54}{space 4} 4.629641{col 67}{space 3} 4.665893
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}
+{txt}Absorbed degrees of freedom:
+{res}{col 1}{text}{hline 13}{c TT}{hline 12}{hline 12}{hline 14}{hline 1}{c TRC}
+{col 1}{text} Absorbed FE{col 14}{c |} Categories{col 27} - Redundant{col 39}  = Num. Coefs{col 54}{c |}
+{res}{col 1}{text}{hline 13}{c +}{hline 12}{hline 12}{hline 14}{hline 1}{c RT}
+{col 1}{text}     prov_id{col 14}{c |}{space 1}       29{col 27}{space 1}       29{col 39}{result}{space 1}        0{col 53}{text}*{col 54}{c |}
+{res}{col 1}{text}          ym{col 14}{c |}{space 1}      242{col 27}{space 1}        1{col 39}{result}{space 1}      241{col 53}{text} {col 54}{c |}
+{res}{col 1}{text}{hline 13}{c BT}{hline 12}{hline 12}{hline 14}{hline 1}{c BRC}
+* = FE nested within cluster; treated as redundant for DoF computation
+{res}{txt}({browse "http://scorreia.com/research/hdfe.pdf":MWFE estimator} converged in 4 iterations)
+{res}
+{txt}HDFE Linear regression{col 51}Number of obs{col 67}= {res}     6,975
+{txt}Absorbing 2 HDFE groups{col 51}F({res}  11{txt},{res}     28{txt}){col 67}= {res}      7.94
+{txt}Statistics robust to heteroskedasticity{col 51}Prob > F{col 67}= {res}    0.0000
+{txt}{col 51}R-squared{col 67}= {res}    0.9185
+{txt}{col 51}Adj R-squared{col 67}= {res}    0.9151
+{txt}{col 51}Within R-sq.{col 67}= {res}    0.1017
+{txt}{col 1}Number of clusters ({res}prov_id{txt}) {col 30}= {res}        29{txt}{col 51}Root MSE{col 67}= {res}    0.0762
+
+{txt}{ralign 78:(Std. Err. adjusted for {res:29} clusters in prov_id)}
+{hline 13}{c TT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{col 14}{c |}{col 26}    Robust
+{col 1}  hydro_frac{col 14}{c |}      Coef.{col 26}   Std. Err.{col 38}      t{col 46}   P>|t|{col 54}     [95% Con{col 67}f. Interval]
+{hline 13}{c +}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{space 10}d1 {c |}{col 14}{res}{space 2}-.0376817{col 26}{space 2} .0079049{col 37}{space 1}   -4.77{col 46}{space 3}0.000{col 54}{space 4} -.053874{col 67}{space 3}-.0214893
+{txt}{space 10}d2 {c |}{col 14}{res}{space 2}-.0256913{col 26}{space 2} .0059618{col 37}{space 1}   -4.31{col 46}{space 3}0.000{col 54}{space 4}-.0379034{col 67}{space 3}-.0134792
+{txt}{space 10}w1 {c |}{col 14}{res}{space 2} .0249283{col 26}{space 2} .0070136{col 37}{space 1}    3.55{col 46}{space 3}0.001{col 54}{space 4} .0105617{col 67}{space 3}  .039295
+{txt}{space 10}w2 {c |}{col 14}{res}{space 2} .0241266{col 26}{space 2} .0115609{col 37}{space 1}    2.09{col 46}{space 3}0.046{col 54}{space 4} .0004452{col 67}{space 3}  .047808
+{txt}{space 6}d1_x_h {c |}{col 14}{res}{space 2}-.0214548{col 26}{space 2}   .01163{col 37}{space 1}   -1.84{col 46}{space 3}0.076{col 54}{space 4}-.0452777{col 67}{space 3} .0023682
+{txt}{space 6}d2_x_h {c |}{col 14}{res}{space 2}-.0176176{col 26}{space 2} .0081676{col 37}{space 1}   -2.16{col 46}{space 3}0.040{col 54}{space 4}-.0343483{col 67}{space 3} -.000887
+{txt}{space 6}w1_x_h {c |}{col 14}{res}{space 2} .0290808{col 26}{space 2} .0078466{col 37}{space 1}    3.71{col 46}{space 3}0.001{col 54}{space 4} .0130078{col 67}{space 3} .0451539
+{txt}{space 6}w2_x_h {c |}{col 14}{res}{space 2} .0263658{col 26}{space 2} .0102105{col 37}{space 1}    2.58{col 46}{space 3}0.015{col 54}{space 4} .0054506{col 67}{space 3} .0472811
+{txt}{space 6}heat_z {c |}{col 14}{res}{space 2}-.0123139{col 26}{space 2} .0029239{col 37}{space 1}   -4.21{col 46}{space 3}0.000{col 54}{space 4}-.0183033{col 67}{space 3}-.0063245
+{txt}heat_x_spe~L {c |}{col 14}{res}{space 2}-.0008355{col 26}{space 2} .0011656{col 37}{space 1}   -0.72{col 46}{space 3}0.479{col 54}{space 4}-.0032231{col 67}{space 3} .0015521
+{txt}{space 2}precip_sum {c |}{col 14}{res}{space 2} .0000945{col 26}{space 2} .0000613{col 37}{space 1}    1.54{col 46}{space 3}0.135{col 54}{space 4}-.0000311{col 67}{space 3} .0002201
+{txt}{space 7}_cons {c |}{col 14}{res}{space 2} .1992549{col 26}{space 2} .0057591{col 37}{space 1}   34.60{col 46}{space 3}0.000{col 54}{space 4} .1874579{col 67}{space 3} .2110519
+{txt}{hline 13}{c BT}{hline 11}{hline 11}{hline 9}{hline 8}{hline 13}{hline 12}
+{res}
+{txt}Absorbed degrees of freedom:
+{res}{col 1}{text}{hline 13}{c TT}{hline 12}{hline 12}{hline 14}{hline 1}{c TRC}
+{col 1}{text} Absorbed FE{col 14}{c |} Categories{col 27} - Redundant{col 39}  = Num. Coefs{col 54}{c |}
+{res}{col 1}{text}{hline 13}{c +}{hline 12}{hline 12}{hline 14}{hline 1}{c RT}
+{col 1}{text}     prov_id{col 14}{c |}{space 1}       29{col 27}{space 1}       29{col 39}{result}{space 1}        0{col 53}{text}*{col 54}{c |}
+{res}{col 1}{text}          ym{col 14}{c |}{space 1}      242{col 27}{space 1}        1{col 39}{result}{space 1}      241{col 53}{text} {col 54}{c |}
+{res}{col 1}{text}{hline 13}{c BT}{hline 12}{hline 12}{hline 14}{hline 1}{c BRC}
+* = FE nested within cluster; treated as redundant for DoF computation
+{res}{txt}
+{com}. 
+. esttab M_ln_hydro M_ln_thermal M_ln_total M_hydro_frac ///
+>     using "output/tables/spei_long_mechanism.tex", replace ///
+>     booktabs label b(4) se(4) star(* 0.10 ** 0.05 *** 0.01) ///
+>     keep(d1 d2 w1 w2 d1_x_h d2_x_h w1_x_h w2_x_h) ///
+>     mtitles("ln Hydro" "ln Thermal" "ln Total" "Hydro share") ///
+>     stats(N r2_a, fmt(%9.0fc %9.3f) labels("Observations" "Adj. R-squared")) ///
+>     nonotes ///
+>     addnotes("SEs in parentheses, clustered at province level (29 clusters)." ///
+>              "Categories from long-baseline SPEI3; omitted category -1 < SPEI3 < 1." ///
+>              "Outcomes as in 12_decompose_generation.do (logs are log(1 + generation))." ///
+>              "FE: province + year-month. Sample: Mar-Dec 2002-2026." ///
+>              "* p<0.10, ** p<0.05, *** p<0.01.")
+{res}{txt}(output written to {browse  `"output/tables/spei_long_mechanism.tex"'})
+
+{com}. 
+. log close
+      {txt}name:  {res}<unnamed>
+       {txt}log:  {res}/Users/botaoqin/Documents/claude/my-project/output/logs/32_spei_long_design.smcl
+  {txt}log type:  {res}smcl
+ {txt}closed on:  {res}17 Nov 2026, 17:33:05
+{txt}{.-}
+{smcl}
+{txt}{sf}{ul off}

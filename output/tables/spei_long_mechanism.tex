@@ -1,0 +1,41 @@
+{
+\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
+\begin{tabular}{l*{4}{c}}
+\toprule
+                    &\multicolumn{1}{c}{(1)}&\multicolumn{1}{c}{(2)}&\multicolumn{1}{c}{(3)}&\multicolumn{1}{c}{(4)}\\
+                    &\multicolumn{1}{c}{ln Hydro}&\multicolumn{1}{c}{ln Thermal}&\multicolumn{1}{c}{ln Total}&\multicolumn{1}{c}{Hydro share}\\
+\midrule
+D1: SPEI3 $\leq -1.5$&     -0.1896\sym{***}&      0.0437\sym{**} &     -0.0495\sym{***}&     -0.0377\sym{***}\\
+                    &    (0.0298)         &    (0.0169)         &    (0.0159)         &    (0.0079)         \\
+\addlinespace
+D2: $-1.5 <$ SPEI3 $\leq -1$&     -0.1020\sym{***}&      0.0332\sym{***}&     -0.0148\sym{*}  &     -0.0257\sym{***}\\
+                    &    (0.0253)         &    (0.0114)         &    (0.0083)         &    (0.0060)         \\
+\addlinespace
+W1: $1 \leq$ SPEI3 $< 1.5$&      0.1136\sym{***}&     -0.0678\sym{***}&     -0.0180         &      0.0249\sym{***}\\
+                    &    (0.0316)         &    (0.0178)         &    (0.0152)         &    (0.0070)         \\
+\addlinespace
+W2: SPEI3 $\geq 1.5$&      0.1717\sym{***}&     -0.0581\sym{**} &     -0.0292         &      0.0241\sym{**} \\
+                    &    (0.0540)         &    (0.0267)         &    (0.0217)         &    (0.0116)         \\
+\addlinespace
+D1(-1.5) $\times$ HydroShare(z)&     -0.0413         &      0.0477\sym{*}  &     -0.0129         &     -0.0215\sym{*}  \\
+                    &    (0.0331)         &    (0.0234)         &    (0.0194)         &    (0.0116)         \\
+\addlinespace
+D2(-1.5/-1) $\times$ HydroShare(z)&     -0.0210         &      0.0362\sym{*}  &      0.0051         &     -0.0176\sym{**} \\
+                    &    (0.0217)         &    (0.0191)         &    (0.0109)         &    (0.0082)         \\
+\addlinespace
+W1 $\times$ HydroShare(z)&      0.0353         &     -0.0545\sym{**} &      0.0570\sym{***}&      0.0291\sym{***}\\
+                    &    (0.0258)         &    (0.0246)         &    (0.0144)         &    (0.0078)         \\
+\addlinespace
+W2 $\times$ HydroShare(z)&      0.0315         &     -0.0336\sym{**} &      0.0792\sym{***}&      0.0264\sym{**} \\
+                    &    (0.0316)         &    (0.0143)         &    (0.0121)         &    (0.0102)         \\
+\midrule
+Observations        &       6,975         &       6,975         &       6,975         &       6,975         \\
+Adj. R-squared      &       0.927         &       0.954         &       0.956         &       0.915         \\
+\bottomrule
+\multicolumn{5}{l}{\footnotesize SEs in parentheses, clustered at province level (29 clusters).}\\
+\multicolumn{5}{l}{\footnotesize Categories from long-baseline SPEI3; omitted category -1 < SPEI3 < 1.}\\
+\multicolumn{5}{l}{\footnotesize Outcomes as in 12\_decompose\_generation.do (logs are log(1 + generation)).}\\
+\multicolumn{5}{l}{\footnotesize FE: province + year-month. Sample: Mar-Dec 2002-2026.}\\
+\multicolumn{5}{l}{\footnotesize * p<0.10, ** p<0.05, *** p<0.01.}\\
+\end{tabular}
+}

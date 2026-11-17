@@ -1,0 +1,56 @@
+{
+\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
+\begin{tabular}{l*{6}{c}}
+\toprule
+                    &\multicolumn{1}{c}{(1)}&\multicolumn{1}{c}{(2)}&\multicolumn{1}{c}{(3)}&\multicolumn{1}{c}{(4)}&\multicolumn{1}{c}{(5)}&\multicolumn{1}{c}{(6)}\\
+                    &\multicolumn{1}{c}{Old SPEI3}&\multicolumn{1}{c}{SPEI3 L}&\multicolumn{1}{c}{Prefit 1940-2001}&\multicolumn{1}{c}{WMO 1961-2020}&\multicolumn{1}{c}{Calendar month}&\multicolumn{1}{c}{Thornthwaite}\\
+\midrule
+Drought: SPEI $\leq -1$&      0.0039\sym{*}  &                     &                     &                     &                     &                     \\
+                    &    (0.0023)         &                     &                     &                     &                     &                     \\
+\addlinespace
+Drought $\times$ HydroShare(z)&      0.0049         &                     &                     &                     &                     &                     \\
+                    &    (0.0036)         &                     &                     &                     &                     &                     \\
+\addlinespace
+Drought: SPEI $\leq -1$&                     &      0.0028         &                     &                     &                     &                     \\
+                    &                     &    (0.0021)         &                     &                     &                     &                     \\
+\addlinespace
+Drought $\times$ HydroShare(z)&                     &      0.0037         &                     &                     &                     &                     \\
+                    &                     &    (0.0024)         &                     &                     &                     &                     \\
+\addlinespace
+Drought: SPEI $\leq -1$&                     &                     &      0.0024         &                     &                     &                     \\
+                    &                     &                     &    (0.0022)         &                     &                     &                     \\
+\addlinespace
+Drought $\times$ HydroShare(z)&                     &                     &      0.0037         &                     &                     &                     \\
+                    &                     &                     &    (0.0026)         &                     &                     &                     \\
+\addlinespace
+Drought: SPEI $\leq -1$&                     &                     &                     &      0.0024         &                     &                     \\
+                    &                     &                     &                     &    (0.0019)         &                     &                     \\
+\addlinespace
+Drought $\times$ HydroShare(z)&                     &                     &                     &      0.0041\sym{*}  &                     &                     \\
+                    &                     &                     &                     &    (0.0024)         &                     &                     \\
+\addlinespace
+Drought: SPEI $\leq -1$&                     &                     &                     &                     &      0.0030         &                     \\
+                    &                     &                     &                     &                     &    (0.0023)         &                     \\
+\addlinespace
+Drought $\times$ HydroShare(z)&                     &                     &                     &                     &      0.0052\sym{*}  &                     \\
+                    &                     &                     &                     &                     &    (0.0026)         &                     \\
+\addlinespace
+Drought: SPEI $\leq -1$&                     &                     &                     &                     &                     &      0.0031         \\
+                    &                     &                     &                     &                     &                     &    (0.0024)         \\
+\addlinespace
+Drought $\times$ HydroShare(z)&                     &                     &                     &                     &                     &      0.0045         \\
+                    &                     &                     &                     &                     &                     &    (0.0035)         \\
+\midrule
+Observations        &       6,975         &       6,975         &       6,975         &       6,975         &       6,975         &       6,975         \\
+Adj. R-squared      &       0.581         &       0.581         &       0.581         &       0.581         &       0.582         &       0.581         \\
+\bottomrule
+\multicolumn{7}{l}{\footnotesize SEs in parentheses, clustered at province level (29 clusters).}\\
+\multicolumn{7}{l}{\footnotesize DV: g\_IndVA. Each column: 1(SPEI <= -1) + its HydroShare(z) interaction.}\\
+\multicolumn{7}{l}{\footnotesize Rows: the drought dummy and its interaction (coefplot row labels follow variable names).}\\
+\multicolumn{7}{l}{\footnotesize Each variant uses its own sample z-score in the heat x SPEI control.}\\
+\multicolumn{7}{l}{\footnotesize Baselines: old = 2000-2026; L = 1940-2025; prefit = 1940-2001; WMO = 1961-2020.}\\
+\multicolumn{7}{l}{\footnotesize Calendar month: separate log-logistic fit per calendar month. Thornthwaite: temperature-only PET.}\\
+\multicolumn{7}{l}{\footnotesize FE: province + year-month. Sample: Mar-Dec 2002-2026.}\\
+\multicolumn{7}{l}{\footnotesize * p<0.10, ** p<0.05, *** p<0.01.}\\
+\end{tabular}
+}

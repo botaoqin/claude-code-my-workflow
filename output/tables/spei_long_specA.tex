@@ -1,0 +1,109 @@
+{
+\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
+\begin{tabular}{l*{6}{c}}
+\toprule
+                    &\multicolumn{1}{c}{(1)}&\multicolumn{1}{c}{(2)}&\multicolumn{1}{c}{(3)}&\multicolumn{1}{c}{(4)}&\multicolumn{1}{c}{(5)}&\multicolumn{1}{c}{(6)}\\
+                    &\multicolumn{1}{c}{No int.}&\multicolumn{1}{c}{Cutoffs -1.5/-1}&\multicolumn{1}{c}{Collapsed}&\multicolumn{1}{c}{Cutoffs -2/-1}&\multicolumn{1}{c}{SPEI1}&\multicolumn{1}{c}{SPEI6}\\
+\midrule
+D1: SPEI3 $\leq -1.5$&      0.0033         &      0.0030         &                     &                     &                     &                     \\
+                    &    (0.0025)         &    (0.0025)         &                     &                     &                     &                     \\
+\addlinespace
+D2: $-1.5 <$ SPEI3 $\leq -1$&      0.0022         &      0.0022         &                     &                     &                     &                     \\
+                    &    (0.0025)         &    (0.0024)         &                     &                     &                     &                     \\
+\addlinespace
+W1: $1 \leq$ SPEI3 $< 1.5$&     -0.0018         &     -0.0006         &                     &     -0.0005         &                     &                     \\
+                    &    (0.0026)         &    (0.0029)         &                     &    (0.0028)         &                     &                     \\
+\addlinespace
+W1 $\times$ HydroShare(z)&                     &     -0.0038\sym{*}  &                     &     -0.0038\sym{*}  &                     &                     \\
+                    &                     &    (0.0021)         &                     &    (0.0021)         &                     &                     \\
+\addlinespace
+W2: SPEI3 $\geq 1.5$&      0.0091\sym{*}  &      0.0091\sym{*}  &                     &      0.0094\sym{*}  &                     &                     \\
+                    &    (0.0047)         &    (0.0047)         &                     &    (0.0046)         &                     &                     \\
+\addlinespace
+W2 $\times$ HydroShare(z)&                     &      0.0003         &                     &      0.0003         &                     &                     \\
+                    &                     &    (0.0057)         &                     &    (0.0057)         &                     &                     \\
+\addlinespace
+Drought: SPEI3 $\leq -1$&                     &                     &      0.0028         &                     &                     &                     \\
+                    &                     &                     &    (0.0021)         &                     &                     &                     \\
+\addlinespace
+D1: SPEI3 $\leq -2$ &                     &                     &                     &      0.0005         &                     &                     \\
+                    &                     &                     &                     &    (0.0040)         &                     &                     \\
+\addlinespace
+D1(-2) $\times$ HydroShare(z)&                     &                     &                     &      0.0011         &                     &                     \\
+                    &                     &                     &                     &    (0.0028)         &                     &                     \\
+\addlinespace
+D2: $-2 <$ SPEI3 $\leq -1$&                     &                     &                     &      0.0030         &                     &                     \\
+                    &                     &                     &                     &    (0.0024)         &                     &                     \\
+\addlinespace
+D2(-2/-1) $\times$ HydroShare(z)&                     &                     &                     &      0.0036         &                     &                     \\
+                    &                     &                     &                     &    (0.0031)         &                     &                     \\
+\addlinespace
+D1: SPEI1 $\leq -1.5$&                     &                     &                     &                     &     -0.0005         &                     \\
+                    &                     &                     &                     &                     &    (0.0024)         &                     \\
+\addlinespace
+D1 $\times$ HydroShare(z) [SPEI1]&                     &                     &                     &                     &      0.0046\sym{*}  &                     \\
+                    &                     &                     &                     &                     &    (0.0024)         &                     \\
+\addlinespace
+D2: $-1.5 <$ SPEI1 $\leq -1$&                     &                     &                     &                     &      0.0028         &                     \\
+                    &                     &                     &                     &                     &    (0.0023)         &                     \\
+\addlinespace
+D2 $\times$ HydroShare(z) [SPEI1]&                     &                     &                     &                     &      0.0025         &                     \\
+                    &                     &                     &                     &                     &    (0.0029)         &                     \\
+\addlinespace
+W1: $1 \leq$ SPEI1 $< 1.5$&                     &                     &                     &                     &     -0.0001         &                     \\
+                    &                     &                     &                     &                     &    (0.0021)         &                     \\
+\addlinespace
+W1 $\times$ HydroShare(z) [SPEI1]&                     &                     &                     &                     &      0.0009         &                     \\
+                    &                     &                     &                     &                     &    (0.0014)         &                     \\
+\addlinespace
+W2: SPEI1 $\geq 1.5$&                     &                     &                     &                     &      0.0002         &                     \\
+                    &                     &                     &                     &                     &    (0.0032)         &                     \\
+\addlinespace
+W2 $\times$ HydroShare(z) [SPEI1]&                     &                     &                     &                     &     -0.0039         &                     \\
+                    &                     &                     &                     &                     &    (0.0042)         &                     \\
+\addlinespace
+D1: SPEI6 $\leq -1.5$&                     &                     &                     &                     &                     &      0.0038         \\
+                    &                     &                     &                     &                     &                     &    (0.0030)         \\
+\addlinespace
+D1 $\times$ HydroShare(z) [SPEI6]&                     &                     &                     &                     &                     &      0.0016         \\
+                    &                     &                     &                     &                     &                     &    (0.0021)         \\
+\addlinespace
+D2: $-1.5 <$ SPEI6 $\leq -1$&                     &                     &                     &                     &                     &      0.0027         \\
+                    &                     &                     &                     &                     &                     &    (0.0023)         \\
+\addlinespace
+D2 $\times$ HydroShare(z) [SPEI6]&                     &                     &                     &                     &                     &      0.0034         \\
+                    &                     &                     &                     &                     &                     &    (0.0020)         \\
+\addlinespace
+W1: $1 \leq$ SPEI6 $< 1.5$&                     &                     &                     &                     &                     &     -0.0006         \\
+                    &                     &                     &                     &                     &                     &    (0.0035)         \\
+\addlinespace
+W1 $\times$ HydroShare(z) [SPEI6]&                     &                     &                     &                     &                     &     -0.0088\sym{***}\\
+                    &                     &                     &                     &                     &                     &    (0.0026)         \\
+\addlinespace
+W2: SPEI6 $\geq 1.5$&                     &                     &                     &                     &                     &      0.0107\sym{*}  \\
+                    &                     &                     &                     &                     &                     &    (0.0055)         \\
+\addlinespace
+W2 $\times$ HydroShare(z) [SPEI6]&                     &                     &                     &                     &                     &     -0.0105\sym{**} \\
+                    &                     &                     &                     &                     &                     &    (0.0048)         \\
+\addlinespace
+D1(-1.5) $\times$ HydroShare(z)&                     &      0.0007         &                     &                     &                     &                     \\
+                    &                     &    (0.0015)         &                     &                     &                     &                     \\
+\addlinespace
+D2(-1.5/-1) $\times$ HydroShare(z)&                     &      0.0053         &                     &                     &                     &                     \\
+                    &                     &    (0.0039)         &                     &                     &                     &                     \\
+\addlinespace
+Drought $\times$ HydroShare(z)&                     &                     &      0.0037         &                     &                     &                     \\
+                    &                     &                     &    (0.0024)         &                     &                     &                     \\
+\midrule
+Observations        &       6,975         &       6,975         &       6,975         &       6,975         &       6,975         &       6,975         \\
+Adj. R-squared      &       0.581         &       0.581         &       0.581         &       0.581         &       0.581         &       0.582         \\
+\bottomrule
+\multicolumn{7}{l}{\footnotesize SEs in parentheses, clustered at province level (29 clusters).}\\
+\multicolumn{7}{l}{\footnotesize DV: g\_IndVA = NBS published single-month real YoY growth (fraction).}\\
+\multicolumn{7}{l}{\footnotesize SPEI*\_L: long-baseline (1940-2025) log-logistic SPEI, raw standardized units.}\\
+\multicolumn{7}{l}{\footnotesize Dummies use the raw index; omitted category is -1 < SPEI < 1.}\\
+\multicolumn{7}{l}{\footnotesize HydroShare is standardised within the estimation sample.}\\
+\multicolumn{7}{l}{\footnotesize FE: province + year-month. Sample: Mar-Dec 2002-2026.}\\
+\multicolumn{7}{l}{\footnotesize * p<0.10, ** p<0.05, *** p<0.01.}\\
+\end{tabular}
+}

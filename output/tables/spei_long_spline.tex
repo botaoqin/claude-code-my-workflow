@@ -1,0 +1,35 @@
+{
+\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
+\begin{tabular}{l*{6}{c}}
+\toprule
+ & \multicolumn{2}{c}{SPEI1} & \multicolumn{2}{c}{SPEI3} & \multicolumn{2}{c}{SPEI6} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
+SPEI range & Slope & Hydro $+1$SD & Slope & Hydro $+1$SD & Slope & Hydro $+1$SD \\
+\midrule
+$\leq -1.5$ & 0.0016 & 0.0013 & 0.0025 & 0.0033 & 0.0063\sym{*} & 0.0007 \\
+ & (0.0027) & (0.0042) & (0.0042) & (0.0075) & (0.0035) & (0.0040) \\
+\addlinespace
+$(-1.5, -1]$ & 0.0076 & 0.0015 & -0.0034 & -0.0047 & -0.0065 & -0.0064 \\
+ & (0.0049) & (0.0078) & (0.0066) & (0.0104) & (0.0072) & (0.0103) \\
+\addlinespace
+$(-1, 0]$ & -0.0048\sym{*} & -0.0062 & -0.0044\sym{*} & -0.0081\sym{**} & -0.0031 & -0.0034 \\
+ & (0.0026) & (0.0050) & (0.0025) & (0.0041) & (0.0026) & (0.0025) \\
+\addlinespace
+$(0, 1]$ & 0.0046\sym{*} & 0.0080\sym{*} & 0.0056\sym{*} & 0.0065 & 0.0050 & 0.0011 \\
+ & (0.0025) & (0.0045) & (0.0030) & (0.0048) & (0.0039) & (0.0030) \\
+\addlinespace
+$(1, 1.5]$ & -0.0045 & -0.0141\sym{*} & -0.0072 & -0.0161 & -0.0188 & -0.0452\sym{**} \\
+ & (0.0087) & (0.0083) & (0.0103) & (0.0114) & (0.0170) & (0.0187) \\
+\addlinespace
+$> 1.5$ & 0.0187\sym{**} & 0.0218\sym{*} & 0.0254 & 0.0437 & 0.2008\sym{***} & 0.2685\sym{***} \\
+ & (0.0084) & (0.0124) & (0.0364) & (0.0817) & (0.0587) & (0.0557) \\
+\midrule
+Observations & \multicolumn{6}{c}{6,975} \\
+\bottomrule
+\multicolumn{7}{l}{\footnotesize SEs in parentheses, clustered at province level (29 clusters).} \\
+\multicolumn{7}{l}{\footnotesize Segment slopes from a continuous linear spline with knots at -1.5, -1, 0, 1, 1.5.} \\
+\multicolumn{7}{l}{\footnotesize ``Hydro $+1$SD'' adds the spline $\times$ HydroShare(z) terms at HydroShare(z) = 1.} \\
+\multicolumn{7}{l}{\footnotesize DV: g\_IndVA. FE: province + year-month. Sample: Mar-Dec 2002-2026.} \\
+\multicolumn{7}{l}{\footnotesize * p$<$0.10, ** p$<$0.05, *** p$<$0.01.} \\
+\end{tabular}
+}
